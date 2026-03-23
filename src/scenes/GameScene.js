@@ -25,6 +25,14 @@ export class GameScene extends Phaser.Scene {
     if (!this.textures.exists('library-floor')) {
       this.load.image('library-floor', 'images/floor.png');
     }
+
+    if (!this.textures.exists('librarian-walk-1')) {
+      this.load.image('librarian-walk-1', 'images/librarian1.png');
+    }
+
+    if (!this.textures.exists('librarian-walk-2')) {
+      this.load.image('librarian-walk-2', 'images/librarian2.png');
+    }
   }
 
   create() {
@@ -112,8 +120,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawWoodFloor() {
-    this.add.image(this.layout.worldWidth / 2, this.layout.worldHeight / 2, 'library-floor')
-      .setDisplaySize(this.layout.worldWidth, this.layout.worldHeight);
+    this.add.tileSprite(this.layout.worldWidth / 2, this.layout.worldHeight / 2, this.layout.worldWidth, this.layout.worldHeight, 'library-floor')
+      .setTileScale(0.58, 0.58);
   }
 
   drawLightStripes() {
@@ -127,21 +135,17 @@ export class GameScene extends Phaser.Scene {
   buildPlayer() {
     this.player = this.add.container(this.state.player.x, this.state.player.y);
     const shadow = this.add.ellipse(0, 18, 26, 12, 0x000000, 0.24);
-    const body = this.add.rectangle(0, 0, 26, 40, 0x3b82f6).setStrokeStyle(2, 0x16345f);
-    const head = this.add.circle(0, -14, 8, 0xffd7b5).setStrokeStyle(1, 0x8f5c3e);
-    this.player.add([shadow, body, head]);
+    this.playerSprite = this.add.image(0, 20, 'librarian-walk-1').setOrigin(0.5, 1).setScale(0.11);
+    this.player.add([shadow, this.playerSprite]);
 
-    this.playerLabel = this.add.text(this.player.x, this.player.y - 42, 'Librarian', {
-      fontSize: '14px',
-      color: '#fff9ef',
-      backgroundColor: '#22150d',
-      padding: { x: 6, y: 2 }
-    }).setOrigin(0.5);
+    this.playerWalkTimer = 0;
+    this.playerWalkFrame = 0;
+    this.playerFacing = 'right';
 
-    this.heldBookIndicator = this.add.rectangle(this.player.x + 22, this.player.y - 8, 12, 16, 0xffffff)
+    this.heldBookIndicator = this.add.rectangle(this.player.x + 24, this.player.y - 18, 12, 16, 0xffffff)
       .setStrokeStyle(1, 0x2a180d)
       .setVisible(false);
-    this.heldBookCount = this.add.text(this.player.x + 38, this.player.y - 16, '', {
+    this.heldBookCount = this.add.text(this.player.x + 40, this.player.y - 26, '', {
       fontSize: '14px',
       color: '#fff9ef',
       backgroundColor: '#22150d',
@@ -311,8 +315,36 @@ export class GameScene extends Phaser.Scene {
       if (this.isBlocked(this.player, 26, 40, true)) this.player.y = previousY;
     }
 
+    this.updatePlayerAnimation(delta, movementX, movementY);
+
     this.state.player.x = this.player.x;
     this.state.player.y = this.player.y;
+  }
+
+  updatePlayerAnimation(delta, movementX, movementY) {
+    const isMoving = movementX !== 0 || movementY !== 0;
+
+    if (movementX < 0) {
+      this.playerFacing = 'left';
+    } else if (movementX > 0) {
+      this.playerFacing = 'right';
+    }
+
+    this.playerSprite.setFlipX(this.playerFacing === 'left');
+
+    if (!isMoving) {
+      this.playerWalkTimer = 0;
+      this.playerWalkFrame = 0;
+      this.playerSprite.setTexture('librarian-walk-1');
+      return;
+    }
+
+    this.playerWalkTimer += delta;
+    if (this.playerWalkTimer >= 0.18) {
+      this.playerWalkTimer = 0;
+      this.playerWalkFrame = this.playerWalkFrame === 0 ? 1 : 0;
+      this.playerSprite.setTexture(this.playerWalkFrame === 0 ? 'librarian-walk-1' : 'librarian-walk-2');
+    }
   }
 
   updateKids(delta) {
@@ -728,16 +760,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   updateVisuals() {
-    this.playerLabel.x = this.player.x;
-    this.playerLabel.y = this.player.y - 42;
     if (this.state.player.carriedBooks.length > 0) {
       this.heldBookIndicator.setVisible(true);
-      this.heldBookIndicator.x = this.player.x + 22;
-      this.heldBookIndicator.y = this.player.y - 8;
+      this.heldBookIndicator.x = this.player.x + 24;
+      this.heldBookIndicator.y = this.player.y - 18;
       this.heldBookIndicator.fillColor = this.state.player.carriedBooks[0].color;
       this.heldBookCount.setVisible(true);
-      this.heldBookCount.x = this.player.x + 34;
-      this.heldBookCount.y = this.player.y - 16;
+      this.heldBookCount.x = this.player.x + 40;
+      this.heldBookCount.y = this.player.y - 26;
       this.heldBookCount.setText('x' + this.state.player.carriedBooks.length);
     } else {
       this.heldBookIndicator.setVisible(false);
@@ -877,6 +907,9 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
+
+
 
 
 
