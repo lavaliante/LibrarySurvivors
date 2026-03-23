@@ -1,0 +1,183 @@
+export const WORLD = {
+  width: 1280,
+  height: 720,
+  headerHeight: 92,
+  margin: 28
+};
+
+export const RUN = {
+  durationSeconds: 1800,
+  baseChaosPerSecond: 0.08,
+  floorBookChaosWeight: 0.3,
+  agedBookChaosWeight: 0.004,
+  lowMessChaosRecovery: 0.1,
+  levelXpBase: 100,
+  levelXpGrowth: 1,
+  eventIntervalSeconds: 70
+};
+
+export const PLAYER_BASE = {
+  speed: 195,
+  pickupRadius: 52,
+  shelfRadius: 62,
+  shelfRatePerSecond: 2.6,
+  capacity: 5,
+  repelRadius: 104,
+  repelDuration: 1.4,
+  interceptRadius: 34,
+  streakBonus: 0
+};
+
+export const KID_ARCHETYPES = {
+  wanderer: {
+    label: 'Wanderer',
+    speed: 68,
+    fleeSpeed: 118,
+    shelfTime: 1.4,
+    farCarryChance: 0.35,
+    farCarryDistance: [120, 210],
+    disruptCount: 1,
+    tint: 0xf28c28
+  },
+  runner: {
+    label: 'Runner',
+    speed: 96,
+    fleeSpeed: 168,
+    shelfTime: 0.8,
+    farCarryChance: 0.8,
+    farCarryDistance: [220, 360],
+    disruptCount: 1,
+    tint: 0xef476f
+  },
+  stackToppler: {
+    label: 'Stack Toppler',
+    speed: 62,
+    fleeSpeed: 104,
+    shelfTime: 1.8,
+    farCarryChance: 0.45,
+    farCarryDistance: [140, 260],
+    disruptCount: 2,
+    tint: 0x7b2cbf
+  }
+};
+
+export const SHELF_CATEGORIES = [
+  { id: 'fiction', label: 'Fiction', color: 0xe76f51, zone: 'West Fiction' },
+  { id: 'history', label: 'History', color: 0x457b9d, zone: 'East History' },
+  { id: 'science', label: 'Science', color: 0x2a9d8f, zone: 'South Science' },
+  { id: 'children', label: 'Children', color: 0xe9c46a, zone: 'North Children' }
+];
+
+export const UPGRADE_POOL = [
+  {
+    id: 'comfy-shoes',
+    label: 'Comfy Shoes',
+    description: '+14% movement speed',
+    apply: (state) => {
+      state.player.speed *= 1.14;
+    }
+  },
+  {
+    id: 'extendable-grabber',
+    label: 'Extendable Grabber',
+    description: '+18 pickup radius',
+    apply: (state) => {
+      state.player.pickupRadius += 18;
+    }
+  },
+  {
+    id: 'book-cart',
+    label: 'Book Cart',
+    description: '+2 carrying capacity',
+    apply: (state) => {
+      state.player.capacity += 2;
+    }
+  },
+  {
+    id: 'dewey-decimal-mastery',
+    label: 'Dewey Decimal Mastery',
+    description: '+35% shelving speed',
+    apply: (state) => {
+      state.player.shelfRatePerSecond *= 1.35;
+    }
+  },
+  {
+    id: 'shelf-whisperer',
+    label: 'Shelf Whisperer',
+    description: '+18 shelving radius',
+    apply: (state) => {
+      state.player.shelfRadius += 18;
+    }
+  },
+  {
+    id: 'stern-glare',
+    label: 'Stern Glare',
+    description: '+28 kid repulsion radius',
+    apply: (state) => {
+      state.player.repelRadius += 28;
+    }
+  },
+  {
+    id: 'quiet-zone-policy',
+    label: 'Quiet Zone Policy',
+    description: '-18% chaos gain',
+    apply: (state) => {
+      state.run.chaosMultiplier *= 0.82;
+    }
+  },
+  {
+    id: 'perfect-filing',
+    label: 'Perfect Filing',
+    description: '+2 streak score bonus',
+    apply: (state) => {
+      state.player.streakBonus += 2;
+    }
+  },
+  {
+    id: 'teacher-voice',
+    label: 'Teacher Voice',
+    description: 'Fleeing kids stay panicked longer',
+    apply: (state) => {
+      state.player.repelDuration += 0.45;
+    }
+  }
+];
+
+export const EVENT_DEFS = [
+  {
+    id: 'field-trip',
+    name: 'Field Trip',
+    duration: 22,
+    description: 'A sudden group arrives. Spawn pressure spikes.',
+    start: (state) => {
+      state.run.spawnMultiplier += 0.75;
+    },
+    end: (state) => {
+      state.run.spawnMultiplier -= 0.75;
+    }
+  },
+  {
+    id: 'quiet-reading-hour',
+    name: 'Quiet Reading Hour',
+    duration: 16,
+    description: 'The room settles down. Chaos gain eases.',
+    start: (state) => {
+      state.run.chaosMultiplier *= 0.72;
+    },
+    end: (state) => {
+      state.run.chaosMultiplier /= 0.72;
+    }
+  },
+  {
+    id: 'book-cart-spill',
+    name: 'Book Cart Spill',
+    duration: 1,
+    description: 'A cart tips over, scattering books onto the floor.',
+    start: (state, scene) => {
+      scene.scatterEventBooks(8);
+    },
+    end: () => {}
+  }
+];
+
+

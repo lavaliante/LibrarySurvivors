@@ -1,0 +1,25 @@
+{
+  "name": "librarysurvivors",
+  "version": "1.0.0",
+  "description": "Prototype for Library Survivors built with Phaser and Vite",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "phaser",
+    "vite",
+    "game"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "vite": "^8.0.1"
+  }
+}
