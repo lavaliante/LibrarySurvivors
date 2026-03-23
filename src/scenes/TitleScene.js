@@ -37,14 +37,14 @@ export class TitleScene extends Phaser.Scene {
 
   drawShell() {
     this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 1080, 580, 0xf7efd9, 0.95).setStrokeStyle(6, 0x6d4c41);
-    this.add.rectangle(WORLD.width / 2, 120, 920, 80, 0xefe1bf, 0.8).setStrokeStyle(2, 0x8f6d46, 0.9);
+    this.add.rectangle(WORLD.width / 2, 108, 920, 92, 0xefe1bf, 0.8).setStrokeStyle(2, 0x8f6d46, 0.9);
     this.add.rectangle(260, 500, 250, 190, 0x6a4526, 0.15).setStrokeStyle(2, 0x6a4526, 0.3);
     this.add.rectangle(1020, 500, 250, 190, 0x6a4526, 0.15).setStrokeStyle(2, 0x6a4526, 0.3);
   }
 
   drawHeroText() {
-    this.add.text(WORLD.width / 2, 92, 'LIBRARY SURVIVORS', {
-      fontSize: '58px',
+    this.add.text(WORLD.width / 2, 104, 'LIBRARY SURVIVORS', {
+      fontSize: '52px',
       color: '#3a2a1d',
       fontStyle: 'bold'
     }).setOrigin(0.5);
@@ -67,6 +67,12 @@ export class TitleScene extends Phaser.Scene {
       color: '#7f5539',
       align: 'center'
     }).setOrigin(0.5);
+
+    this.add.text(WORLD.width / 2, 360, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
+      fontSize: '16px',
+      color: '#6b513d',
+      align: 'center'
+    }).setOrigin(0.5);
   }
 
   createButtons() {
@@ -83,12 +89,6 @@ export class TitleScene extends Phaser.Scene {
     this.add.text(WORLD.width / 2, 615, 'Keyboard shortcut: press ENTER or SPACE to start', {
       fontSize: '21px',
       color: '#7f5539'
-    }).setOrigin(0.5);
-
-    this.add.text(WORLD.width / 2, 675, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
-      fontSize: '16px',
-      color: '#6b513d',
-      align: 'center'
     }).setOrigin(0.5);
   }
 
@@ -188,4 +188,3 @@ export class TitleScene extends Phaser.Scene {
     this.instructionsContainer.setVisible(this.instructionsVisible);
   }
 }
-
