@@ -17,6 +17,10 @@ export class GameScene extends Phaser.Scene {
     super('game');
   }
 
+  preload() {
+    this.load.audio('soundtrack', 'audio/whistling_in_the_wind.mp3');
+  }
+
   create() {
     this.layout = createLibraryLayout();
     this.mathRng = new Phaser.Math.RandomDataGenerator([`${Date.now()}`]);
@@ -40,6 +44,9 @@ export class GameScene extends Phaser.Scene {
     this.spawnKid('wanderer');
     this.spawnAccumulator = 4;
     this.setStatus('Keep the shelves under control.');
+
+    // Play background soundtrack on loop
+    this.sound.play('soundtrack', { loop: true, volume: 0.5 });
   }
 
   createInitialState() {
