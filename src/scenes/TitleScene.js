@@ -84,6 +84,12 @@ export class TitleScene extends Phaser.Scene {
       fontSize: '21px',
       color: '#7f5539'
     }).setOrigin(0.5);
+
+    this.add.text(WORLD.width / 2, 675, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
+      fontSize: '16px',
+      color: '#6b513d',
+      align: 'center'
+    }).setOrigin(0.5);
   }
 
   createInstructionsPanel() {
@@ -182,3 +188,4 @@ export class TitleScene extends Phaser.Scene {
     this.instructionsContainer.setVisible(this.instructionsVisible);
   }
 }
+
