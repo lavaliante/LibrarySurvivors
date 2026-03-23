@@ -21,6 +21,10 @@ export class GameScene extends Phaser.Scene {
     if (!this.cache.audio.exists('soundtrack')) {
       this.load.audio('soundtrack', 'audio/whistling_in_the_wind.mp3');
     }
+
+    if (!this.textures.exists('library-floor')) {
+      this.load.image('library-floor', 'images/floor.png');
+    }
   }
 
   create() {
@@ -108,20 +112,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawWoodFloor() {
-    this.add.rectangle(this.layout.worldWidth / 2, this.layout.worldHeight / 2, this.layout.worldWidth, this.layout.worldHeight, 0xb98553);
-
-    const rows = Math.ceil(this.layout.worldHeight / 34) + 1;
-    const cols = Math.ceil(this.layout.worldWidth / 68) + 2;
-
-    for (let row = 0; row < rows; row += 1) {
-      const y = WORLD.headerHeight + 10 + row * 34;
-      const offset = row % 2 === 0 ? 0 : 34;
-      for (let col = -1; col < cols; col += 1) {
-        const x = 20 + offset + col * 68;
-        const tone = row % 3 === 0 ? 0xc58f59 : row % 3 === 1 ? 0xb57f4a : 0xa56d3f;
-        this.add.rectangle(x, y, 66, 30, tone).setOrigin(0, 0).setStrokeStyle(1, 0x7a512e, 0.25);
-      }
-    }
+    this.add.image(this.layout.worldWidth / 2, this.layout.worldHeight / 2, 'library-floor')
+      .setDisplaySize(this.layout.worldWidth, this.layout.worldHeight);
   }
 
   drawLightStripes() {
@@ -885,4 +877,6 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
+
 
