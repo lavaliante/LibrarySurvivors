@@ -7,7 +7,7 @@ import { EndScene } from './scenes/EndScene.js';
 const config = {
   type: Phaser.AUTO,
   ...GAME_CONFIG,
-  scene: [GameScene, TitleScene, EndScene]
+  scene: [TitleScene, GameScene, EndScene]
 };
 
 new Phaser.Game(config);

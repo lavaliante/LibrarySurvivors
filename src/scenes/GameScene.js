@@ -18,7 +18,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.audio('soundtrack', 'audio/whistling_in_the_wind.mp3');
+    if (!this.cache.audio.exists('soundtrack')) {
+      this.load.audio('soundtrack', 'audio/whistling_in_the_wind.mp3');
+    }
   }
 
   create() {
@@ -45,8 +47,9 @@ export class GameScene extends Phaser.Scene {
     this.spawnAccumulator = 4;
     this.setStatus('Keep the shelves under control.');
 
-    // Play background soundtrack on loop
-    this.sound.play('soundtrack', { loop: true, volume: 0.5 });
+    if (!this.sound.get('soundtrack')?.isPlaying) {
+      this.sound.play('soundtrack', { loop: true, volume: 0.42 });
+    }
   }
 
   createInitialState() {
@@ -882,9 +885,4 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
-
-
-
-
-
 
