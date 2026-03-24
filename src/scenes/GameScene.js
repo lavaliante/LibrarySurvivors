@@ -138,18 +138,18 @@ export class GameScene extends Phaser.Scene {
 
   buildPlayer() {
     this.player = this.add.container(this.state.player.x, this.state.player.y);
-    const shadow = this.add.ellipse(0, 18, 26, 12, 0x000000, 0.24);
-    this.playerSprite = this.add.image(0, 20, 'librarian-walk-1').setOrigin(0.5, 1).setScale(0.11);
+    const shadow = this.add.ellipse(0, 24, 34, 15, 0x000000, 0.24);
+    this.playerSprite = this.add.image(0, 26, 'librarian-walk-1').setOrigin(0.5, 1).setScale(0.135);
     this.player.add([shadow, this.playerSprite]);
 
     this.playerWalkTimer = 0;
     this.playerWalkFrame = 0;
     this.playerFacing = 'right';
 
-    this.heldBookIndicator = this.add.rectangle(this.player.x + 24, this.player.y - 18, 12, 16, 0xffffff)
+    this.heldBookIndicator = this.add.rectangle(this.player.x + 30, this.player.y - 26, 14, 20, 0xffffff)
       .setStrokeStyle(1, 0x2a180d)
       .setVisible(false);
-    this.heldBookCount = this.add.text(this.player.x + 40, this.player.y - 26, '', {
+    this.heldBookCount = this.add.text(this.player.x + 48, this.player.y - 34, '', {
       fontSize: '14px',
       color: '#fff9ef',
       backgroundColor: '#22150d',
@@ -415,7 +415,7 @@ export class GameScene extends Phaser.Scene {
           break;
       }
 
-      if (this.isBlocked(kid, 22, 30, false)) {
+      if (this.isBlocked(kid, 28, 44, false)) {
         kid.x = previous.x;
         kid.y = previous.y;
         if (kid.state === 'movingToShelf') kid.state = 'idle';
@@ -425,8 +425,6 @@ export class GameScene extends Phaser.Scene {
 
       kid.container.x = kid.x;
       kid.container.y = kid.y;
-      kid.label.x = kid.x;
-      kid.label.y = kid.y - 26;
     }
   }
 
@@ -589,19 +587,19 @@ export class GameScene extends Phaser.Scene {
       shelvedCount: def.totalSlots
     };
 
-    shelf.shadow = this.add.rectangle(shelf.x + 4, shelf.y + 6, shelf.width, shelf.height, 0x000000, 0.16);
-    shelf.body = this.add.rectangle(shelf.x, shelf.y, shelf.width, shelf.height, 0x5b381f).setStrokeStyle(2, 0x2d1a0f);
-    shelf.strip = this.add.rectangle(shelf.x, shelf.y - shelf.height / 2 + 6, shelf.width - 8, 8, shelf.color);
-    shelf.base = this.add.rectangle(shelf.x, shelf.y + shelf.height / 2 + 6, 20, 10, 0x49301a);
-    shelf.leftFoot = this.add.rectangle(shelf.x - 14, shelf.y + shelf.height / 2 + 11, 6, 10, 0x3a2415);
-    shelf.rightFoot = this.add.rectangle(shelf.x + 14, shelf.y + shelf.height / 2 + 11, 6, 10, 0x3a2415);
+    shelf.shadow = this.add.rectangle(shelf.x + 5, shelf.y + 8, shelf.width + 6, shelf.height + 6, 0x000000, 0.16);
+    shelf.body = this.add.rectangle(shelf.x, shelf.y, shelf.width, shelf.height, 0x5b381f).setStrokeStyle(3, 0x2d1a0f);
+    shelf.strip = this.add.rectangle(shelf.x, shelf.y - shelf.height / 2 + 8, shelf.width - 10, 10, shelf.color);
+    shelf.base = this.add.rectangle(shelf.x, shelf.y + shelf.height / 2 + 8, 28, 12, 0x49301a);
+    shelf.leftFoot = this.add.rectangle(shelf.x - 20, shelf.y + shelf.height / 2 + 15, 8, 14, 0x3a2415);
+    shelf.rightFoot = this.add.rectangle(shelf.x + 20, shelf.y + shelf.height / 2 + 15, 8, 14, 0x3a2415);
     shelf.bookSlots = [];
 
     for (let row = 0; row < 2; row += 1) {
       for (let col = 0; col < 3; col += 1) {
-        const slotX = shelf.x - 18 + col * 18;
-        const slotY = shelf.y - 20 + row * 26;
-        const slot = this.add.rectangle(slotX, slotY, 10, 16, shelf.color, 0.85).setStrokeStyle(1, 0x2a180d, 0.65);
+        const slotX = shelf.x - 26 + col * 26;
+        const slotY = shelf.y - 30 + row * 34;
+        const slot = this.add.rectangle(slotX, slotY, 14, 22, shelf.color, 0.85).setStrokeStyle(1, 0x2a180d, 0.65);
         shelf.bookSlots.push(slot);
       }
     }
@@ -623,8 +621,8 @@ export class GameScene extends Phaser.Scene {
       ownerId: shelf.id
     };
 
-    book.shadow = this.add.ellipse(shelf.x, shelf.y + 7, 14, 8, 0x000000, 0.18).setVisible(false);
-    book.sprite = this.add.rectangle(shelf.x, shelf.y, 12, 20, shelf.color).setStrokeStyle(1, 0x3a261a).setVisible(false);
+    book.shadow = this.add.ellipse(shelf.x, shelf.y + 8, 18, 10, 0x000000, 0.18).setVisible(false);
+    book.sprite = this.add.rectangle(shelf.x, shelf.y, 16, 26, shelf.color).setStrokeStyle(1, 0x3a261a).setVisible(false);
     this.state.books.push(book);
     return book;
   }
@@ -646,23 +644,17 @@ export class GameScene extends Phaser.Scene {
     };
 
     const sprite = this.add.container(kid.x, kid.y);
-    const shadow = this.add.ellipse(0, 11, 20, 10, 0x000000, 0.18);
-    const kidSprite = this.add.sprite(0, 14, 'kids-sheet', kid.appearanceIndex + 5)
+    const shadow = this.add.ellipse(0, 14, 24, 12, 0x000000, 0.18);
+    const kidSprite = this.add.sprite(0, 18, 'kids-sheet', kid.appearanceIndex + 5)
       .setOrigin(0.5, 1)
-      .setScale(0.18)
+      .setScale(0.24)
       .setFlipX(kid.facing === 'left');
-    const carriedIndicator = this.add.rectangle(0, -20, 12, 16, 0xffffff).setStrokeStyle(1, 0x3a261a).setVisible(false);
+    const carriedIndicator = this.add.rectangle(0, -28, 12, 16, 0xffffff).setStrokeStyle(1, 0x3a261a).setVisible(false);
     sprite.add([shadow, kidSprite, carriedIndicator]);
 
     kid.container = sprite;
     kid.sprite = kidSprite;
     kid.carriedIndicator = carriedIndicator;
-    kid.label = this.add.text(kid.x, kid.y - 26, '', {
-      fontSize: '12px',
-      color: '#fff4dd',
-      backgroundColor: '#2a1b12',
-      padding: { x: 4, y: 1 }
-    }).setOrigin(0.5).setVisible(false);
 
     this.state.kids.push(kid);
     this.setStatus(KID_ARCHETYPES[archetype].label + ' entered the library');
@@ -774,12 +766,12 @@ export class GameScene extends Phaser.Scene {
   updateVisuals() {
     if (this.state.player.carriedBooks.length > 0) {
       this.heldBookIndicator.setVisible(true);
-      this.heldBookIndicator.x = this.player.x + 24;
-      this.heldBookIndicator.y = this.player.y - 18;
+      this.heldBookIndicator.x = this.player.x + 30;
+      this.heldBookIndicator.y = this.player.y - 26;
       this.heldBookIndicator.fillColor = this.state.player.carriedBooks[0].color;
       this.heldBookCount.setVisible(true);
-      this.heldBookCount.x = this.player.x + 40;
-      this.heldBookCount.y = this.player.y - 26;
+      this.heldBookCount.x = this.player.x + 48;
+      this.heldBookCount.y = this.player.y - 34;
       this.heldBookCount.setText('x' + this.state.player.carriedBooks.length);
     } else {
       this.heldBookIndicator.setVisible(false);
@@ -800,10 +792,8 @@ export class GameScene extends Phaser.Scene {
 
     for (const kid of this.state.kids) {
       kid.carriedIndicator.setVisible(kid.carrying.length > 0);
-      kid.label.setVisible(kid.carrying.length > 0);
       if (kid.carrying.length > 0) {
         kid.carriedIndicator.fillColor = kid.carrying[0].color;
-        kid.label.setText('BOOK');
       }
     }
   }
@@ -827,7 +817,6 @@ export class GameScene extends Phaser.Scene {
 
   updateKidVisual(kid) {
     kid.carriedIndicator.setVisible(kid.carrying.length > 0);
-    kid.label.setVisible(kid.carrying.length > 0);
   }
 
   updateKidSprite(kid, previous) {
@@ -951,6 +940,9 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
+
+
 
 
 

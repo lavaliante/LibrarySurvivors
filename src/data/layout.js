@@ -6,22 +6,22 @@ export function createLibraryLayout() {
   const [fiction, history, science, children] = SHELF_CATEGORIES;
   const worldWidth = 2240;
   const worldHeight = 1440;
-  const topOffset = WORLD.headerHeight + 80;
+  const topOffset = WORLD.headerHeight + 100;
 
   const shelfRows = [
-    { y: topOffset + 40, items: [fiction, children, history, science, fiction, children, history] },
-    { y: topOffset + 260, items: [children, fiction, science, history, children, science, fiction] },
-    { y: topOffset + 480, items: [history, science, fiction, children, history, fiction, science] },
-    { y: topOffset + 700, items: [science, children, fiction, history, science, children, fiction] },
-    { y: topOffset + 920, items: [fiction, history, science, children, fiction, history, science] }
+    { y: topOffset + 30, items: [fiction, children, history, science, fiction] },
+    { y: topOffset + 285, items: [children, fiction, science, history, children] },
+    { y: topOffset + 540, items: [history, science, fiction, children, history] },
+    { y: topOffset + 795, items: [science, children, fiction, history, science] },
+    { y: topOffset + 1050, items: [fiction, history, science, children, fiction] }
   ];
 
-  const columns = [220, 470, 720, 970, 1220, 1470, 1720];
+  const columns = [360, 720, 1080, 1440, 1800];
   const shelves = [];
 
   shelfRows.forEach((row) => {
     row.items.forEach((category, index) => {
-      shelves.push(shelf(columns[index], row.y, 64, 100, category, SHELF_CAPACITY));
+      shelves.push(shelf(columns[index], row.y, 88, 132, category, SHELF_CAPACITY));
     });
   });
 
@@ -34,20 +34,14 @@ export function createLibraryLayout() {
       { x: 18, y: worldHeight / 2, width: 22, height: worldHeight - WORLD.headerHeight - 20 },
       { x: worldWidth - 18, y: worldHeight / 2, width: 22, height: worldHeight - WORLD.headerHeight - 20 }
     ],
-    zones: [
-      { x: worldWidth / 2, y: topOffset - 36, width: worldWidth - 180, height: 120, label: 'North Wing' },
-      { x: worldWidth / 2, y: topOffset + 184, width: worldWidth - 180, height: 120, label: 'Story Walk' },
-      { x: worldWidth / 2, y: topOffset + 404, width: worldWidth - 180, height: 120, label: 'Study Loop' },
-      { x: worldWidth / 2, y: topOffset + 624, width: worldWidth - 180, height: 120, label: 'Archive Row' },
-      { x: worldWidth / 2, y: topOffset + 844, width: worldWidth - 180, height: 120, label: 'South Wing' }
-    ],
+    zones: [],
     shelves,
-    playerSpawn: { x: worldWidth / 2, y: topOffset + 460 },
+    playerSpawn: { x: worldWidth / 2, y: topOffset + 560 },
     kidSpawns: [
-      { x: 88, y: topOffset + 180 },
-      { x: worldWidth - 88, y: topOffset + 180 },
-      { x: 88, y: topOffset + 620 },
-      { x: worldWidth - 88, y: topOffset + 620 },
+      { x: 110, y: topOffset + 150 },
+      { x: worldWidth - 110, y: topOffset + 150 },
+      { x: 110, y: topOffset + 780 },
+      { x: worldWidth - 110, y: topOffset + 780 },
       { x: worldWidth / 2, y: worldHeight - 120 }
     ],
     bounds: {
@@ -72,4 +66,3 @@ function shelf(x, y, width, height, category, slots) {
     totalSlots: slots
   };
 }
-
