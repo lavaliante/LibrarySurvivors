@@ -1,14 +1,9 @@
 import Phaser from 'phaser';
 import { WORLD } from '../config/tuning.js';
 
-const BACKGROUND_IMAGES = [
-  { key: 'library-bg-1', path: 'images/library1.jpg', lift: 0.0 },
-  { key: 'library-bg-2', path: 'images/library2.png', lift: 0.03 },
-  { key: 'library-bg-3', path: 'images/library3.png', lift: 0.045 },
-  { key: 'library-bg-4', path: 'images/library4.png', lift: 0.06 },
-  { key: 'library-bg-5', path: 'images/library5.png', lift: 0.08 },
-  { key: 'library-bg-6', path: 'images/library6.png', lift: 0.095 }
-];
+const TITLE_BACKGROUND = { key: 'library-bg-1', path: 'images/library1.jpg' };
+const TITLE_SOUNDTRACK_VOLUME = 0.14;
+const GAME_SOUNDTRACK_VOLUME = 0.42;
 
 const DEPTHS = {
   background: 0,
@@ -25,98 +20,34 @@ export class TitleScene extends Phaser.Scene {
   preload() {
     this.load.audio('soundtrack', 'audio/whistling_in_the_wind.mp3');
 
-    for (const background of BACKGROUND_IMAGES) {
-      if (!this.textures.exists(background.key)) {
-        this.load.image(background.key, background.path);
-      }
+    if (!this.textures.exists(TITLE_BACKGROUND.key)) {
+      this.load.image(TITLE_BACKGROUND.key, TITLE_BACKGROUND.path);
     }
   }
 
   create() {
     this.cameras.main.setBackgroundColor('#14100d');
-    this.soundtrack = this.sound.get('soundtrack') ?? this.sound.add('soundtrack', { loop: true, volume: 0.42 });
+    this.soundtrack = this.sound.get('soundtrack') ?? this.sound.add('soundtrack', { loop: true, volume: TITLE_SOUNDTRACK_VOLUME });
+    this.soundtrack.setVolume(TITLE_SOUNDTRACK_VOLUME);
     this.instructionsVisible = false;
-    this.backgroundIndex = 0;
 
     this.drawBackdrop();
     this.drawHeroText();
     this.createButtons();
     this.createInstructionsPanel();
     this.registerInput();
-    this.startBackdropCycle();
+    this.ensureSoundtrack();
   }
 
   drawBackdrop() {
-    this.backgroundImages = [];
-    this.backgroundLifts = [];
-
-    BACKGROUND_IMAGES.forEach((background, index) => {
-      const image = this.add.image(WORLD.width / 2, WORLD.height / 2, background.key)
-        .setDisplaySize(WORLD.width, WORLD.height)
-        .setAlpha(index === 0 ? 1 : 0)
-        .setDepth(DEPTHS.background);
-
-      const lift = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0xfff1d0, background.lift)
-        .setAlpha(index === 0 ? background.lift : 0)
-        .setDepth(DEPTHS.background + 1);
-
-      this.backgroundImages.push(image);
-      this.backgroundLifts.push(lift);
-    });
+    this.add.image(WORLD.width / 2, WORLD.height / 2, TITLE_BACKGROUND.key)
+      .setDisplaySize(WORLD.width, WORLD.height)
+      .setDepth(DEPTHS.background);
 
     this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x120b08, 0.18)
       .setDepth(DEPTHS.overlay);
     this.add.rectangle(WORLD.width / 2, WORLD.height - 56, WORLD.width, 112, 0x140d09, 0.48)
       .setDepth(DEPTHS.overlay);
-  }
-
-  startBackdropCycle() {
-    this.time.addEvent({
-      delay: 950,
-      loop: true,
-      callback: () => {
-        const previousImage = this.backgroundImages[this.backgroundIndex];
-        const previousLift = this.backgroundLifts[this.backgroundIndex];
-
-        if (this.backgroundIndex === this.backgroundImages.length - 1) {
-          this.backgroundDirection = -1;
-        } else if (this.backgroundIndex === 0) {
-          this.backgroundDirection = 1;
-        }
-
-        this.backgroundIndex += this.backgroundDirection;
-
-        const nextImage = this.backgroundImages[this.backgroundIndex];
-        const nextLift = this.backgroundLifts[this.backgroundIndex];
-        const nextLiftAlpha = BACKGROUND_IMAGES[this.backgroundIndex].lift;
-
-        previousImage.setDepth(DEPTHS.background);
-        nextImage.setDepth(DEPTHS.background + 1);
-        previousLift.setDepth(DEPTHS.background + 1);
-        nextLift.setDepth(DEPTHS.background + 2);
-
-        this.tweens.add({
-          targets: [previousImage, previousLift],
-          alpha: 0,
-          duration: 420,
-          ease: 'Sine.easeInOut'
-        });
-
-        this.tweens.add({
-          targets: nextImage,
-          alpha: 1,
-          duration: 420,
-          ease: 'Sine.easeInOut'
-        });
-
-        this.tweens.add({
-          targets: nextLift,
-          alpha: nextLiftAlpha,
-          duration: 420,
-          ease: 'Sine.easeInOut'
-        });
-      }
-    });
   }
 
   drawHeroText() {
@@ -169,16 +100,7 @@ export class TitleScene extends Phaser.Scene {
       strokeThickness: 4
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
 
-    this.musicHint = this.add.text(WORLD.width / 2, 378, 'Click Start or Instructions to begin the soundtrack.', {
-      fontFamily: 'monospace',
-      fontSize: '17px',
-      color: '#f2cf8f',
-      align: 'center',
-      stroke: '#2b1a11',
-      strokeThickness: 3
-    }).setOrigin(0.5).setDepth(DEPTHS.ui);
-
-    this.add.text(WORLD.width / 2, 406, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
+    this.add.text(WORLD.width / 2, 392, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
       fontFamily: 'monospace',
       fontSize: '15px',
       color: '#ebc17d',
@@ -190,12 +112,13 @@ export class TitleScene extends Phaser.Scene {
 
   createButtons() {
     this.buildButton(WORLD.width / 2, 494, 360, 72, 'START GAME', 0x24140d, 0xe0b56a, () => {
-      this.ensureSoundtrack();
+      if (this.soundtrack) {
+        this.soundtrack.setVolume(GAME_SOUNDTRACK_VOLUME);
+      }
       this.scene.start('game');
     });
 
     this.buildButton(WORLD.width / 2, 582, 360, 62, 'INSTRUCTIONS', 0x5a3a25, 0xf0c98e, () => {
-      this.ensureSoundtrack();
       this.toggleInstructions();
     });
 
@@ -280,14 +203,15 @@ export class TitleScene extends Phaser.Scene {
 
   registerInput() {
     const startGame = () => {
-      this.ensureSoundtrack();
+      if (this.soundtrack) {
+        this.soundtrack.setVolume(GAME_SOUNDTRACK_VOLUME);
+      }
       this.scene.start('game');
     };
 
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER).on('down', startGame);
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE).on('down', startGame);
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I).on('down', () => {
-      this.ensureSoundtrack();
       this.toggleInstructions();
     });
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC).on('down', () => {
@@ -299,9 +223,10 @@ export class TitleScene extends Phaser.Scene {
 
   ensureSoundtrack() {
     if (!this.soundtrack.isPlaying) {
-      this.soundtrack.play();
-      this.musicHint.setText('Soundtrack playing: Whistling in the Wind');
+      this.soundtrack.play({ loop: true, volume: TITLE_SOUNDTRACK_VOLUME });
     }
+
+    this.soundtrack.setVolume(TITLE_SOUNDTRACK_VOLUME);
   }
 
   toggleInstructions(forceState) {
@@ -309,4 +234,3 @@ export class TitleScene extends Phaser.Scene {
     this.instructionsContainer.setVisible(this.instructionsVisible);
   }
 }
-

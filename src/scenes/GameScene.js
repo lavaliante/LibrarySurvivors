@@ -63,7 +63,10 @@ export class GameScene extends Phaser.Scene {
     this.spawnAccumulator = 4;
     this.setStatus('Keep the shelves under control.');
 
-    if (!this.sound.get('soundtrack')?.isPlaying) {
+    const soundtrack = this.sound.get('soundtrack');
+    if (soundtrack?.isPlaying) {
+      soundtrack.setVolume(0.42);
+    } else {
       this.sound.play('soundtrack', { loop: true, volume: 0.42 });
     }
   }
@@ -980,6 +983,7 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
 
 
 
