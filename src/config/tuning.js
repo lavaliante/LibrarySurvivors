@@ -7,10 +7,10 @@ export const WORLD = {
 
 export const RUN = {
   durationSeconds: 600,
-  baseChaosPerSecond: 0.04,
-  floorBookChaosWeight: 0.19,
-  agedBookChaosWeight: 0.0022,
-  lowMessChaosRecovery: 0.12,
+  baseChaosPerSecond: 0.03,
+  floorBookChaosWeight: 0.15,
+  agedBookChaosWeight: 0.0018,
+  lowMessChaosRecovery: 0.14,
   levelXpBase: 100,
   levelXpIncrement: 10,
 
