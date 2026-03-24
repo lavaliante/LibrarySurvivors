@@ -18,6 +18,11 @@ export const RUN = {
 
 export const PLAYER_BASE = {
   speed: 195,
+  sprintMultiplier: 1.6,
+  staminaMax: 100,
+  staminaDrainPerSecond: 34,
+  staminaRecoveryDelay: 1.7,
+  staminaRecoveryPerSecond: 26,
   pickupRadius: 52,
   shelfRadius: 62,
   shelfRatePerSecond: 2.6,
@@ -179,5 +184,3 @@ export const EVENT_DEFS = [
     end: () => {}
   }
 ];
-
-

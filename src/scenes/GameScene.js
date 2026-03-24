@@ -95,6 +95,9 @@ export class GameScene extends Phaser.Scene {
         x: this.layout.playerSpawn.x,
         y: this.layout.playerSpawn.y,
         ...PLAYER_BASE,
+        stamina: PLAYER_BASE.staminaMax,
+        staminaRecoveryCooldown: 0,
+        isSprinting: false,
         carriedBooks: [],
         upgrades: []
       },
@@ -207,6 +210,8 @@ export class GameScene extends Phaser.Scene {
     this.chaosBar = this.add.rectangle(470, 47, 0, 10, 0x46d34d).setOrigin(0, 0.5).setScrollFactor(0);
     this.xpBarBg = this.add.rectangle(24, 86, 188, 8, 0x120c08).setOrigin(0, 0.5).setScrollFactor(0);
     this.xpBar = this.add.rectangle(24, 86, 0, 8, 0x62c370).setOrigin(0, 0.5).setScrollFactor(0);
+    this.staminaBarBg = this.add.rectangle(24, 102, 188, 8, 0x120c08).setOrigin(0, 0.5).setScrollFactor(0);
+    this.staminaBar = this.add.rectangle(24, 102, 188, 8, 0x5cc8ff).setOrigin(0, 0.5).setScrollFactor(0);
 
     this.statusText = this.add.text(WORLD.width / 2, WORLD.height - 30, '', {
       fontSize: '18px',
@@ -251,7 +256,8 @@ export class GameScene extends Phaser.Scene {
       up: Phaser.Input.Keyboard.KeyCodes.W,
       down: Phaser.Input.Keyboard.KeyCodes.S,
       left: Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D
+      right: Phaser.Input.Keyboard.KeyCodes.D,
+      sprint: Phaser.Input.Keyboard.KeyCodes.SHIFT
     });
 
     this.input.keyboard.on('keydown-P', () => {
@@ -306,9 +312,27 @@ export class GameScene extends Phaser.Scene {
     if (this.cursors.up.isDown || this.keys.up.isDown) dy -= 1;
     if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
 
+    const wantsToSprint = (this.cursors.shift?.isDown || this.keys.sprint.isDown) && (dx !== 0 || dy !== 0);
+    const canSprint = wantsToSprint && this.state.player.stamina > 0 && this.state.player.staminaRecoveryCooldown <= 0;
+    this.state.player.isSprinting = canSprint;
+
+    if (canSprint) {
+      this.state.player.stamina = Math.max(0, this.state.player.stamina - this.state.player.staminaDrainPerSecond * delta);
+      this.state.player.staminaRecoveryCooldown = this.state.player.staminaRecoveryDelay;
+      if (this.state.player.stamina <= 0) {
+        this.state.player.isSprinting = false;
+      }
+    } else {
+      this.state.player.staminaRecoveryCooldown = Math.max(0, this.state.player.staminaRecoveryCooldown - delta);
+      if (this.state.player.staminaRecoveryCooldown <= 0) {
+        this.state.player.stamina = Math.min(this.state.player.staminaMax, this.state.player.stamina + this.state.player.staminaRecoveryPerSecond * delta);
+      }
+    }
+
+    const speed = this.state.player.speed * (this.state.player.isSprinting ? this.state.player.sprintMultiplier : 1);
     const direction = normalize(dx, dy);
-    const movementX = dx === 0 && dy === 0 ? 0 : direction.x * this.state.player.speed * delta;
-    const movementY = dx === 0 && dy === 0 ? 0 : direction.y * this.state.player.speed * delta;
+    const movementX = dx === 0 && dy === 0 ? 0 : direction.x * speed * delta;
+    const movementY = dx === 0 && dy === 0 ? 0 : direction.y * speed * delta;
 
     if (movementX !== 0) {
       const previousX = this.player.x;
@@ -418,7 +442,7 @@ export class GameScene extends Phaser.Scene {
           break;
       }
 
-      if (this.isBlocked(kid, 28, 44, true)) {
+      if (this.isBlocked(kid, 28, 44, false)) {
         kid.x = previous.x;
         kid.y = previous.y;
         if (kid.state === 'movingToShelf' && this.isTouchingShelf(previous, kid.targetShelf, 12)) {
@@ -757,6 +781,20 @@ export class GameScene extends Phaser.Scene {
     this.state.run.streak = 0;
   }
 
+  isTooCloseToShelf(target, width, height, padding = 0) {
+    const left = target.x - width / 2;
+    const right = target.x + width / 2;
+    const top = target.y - height / 2;
+    const bottom = target.y + height / 2;
+
+    return this.state.shelves.some((shelf) => {
+      const shelfLeft = shelf.x - shelf.width / 2 - padding;
+      const shelfRight = shelf.x + shelf.width / 2 + padding;
+      const shelfTop = shelf.y - shelf.height / 2 - padding;
+      const shelfBottom = shelf.y + shelf.height / 2 + padding;
+      return right > shelfLeft && left < shelfRight && bottom > shelfTop && top < shelfBottom;
+    });
+  }
   findOpenFloorPoint(originX, originY, radius, width, height) {
     for (let attempt = 0; attempt < 18; attempt += 1) {
       const point = randomPointInCircle(this, originX, originY, radius);
@@ -765,7 +803,7 @@ export class GameScene extends Phaser.Scene {
         y: clamp(point.y, this.layout.bounds.y, this.layout.bounds.y + this.layout.bounds.height)
       };
 
-      if (!this.isBlocked(candidate, width, height, true)) {
+      if (!this.isBlocked(candidate, width, height, true) && !this.isTooCloseToShelf(candidate, width, height, 18)) {
         return candidate;
       }
     }
@@ -775,7 +813,7 @@ export class GameScene extends Phaser.Scene {
       y: clamp(originY, this.layout.bounds.y, this.layout.bounds.y + this.layout.bounds.height)
     };
 
-    if (!this.isBlocked(fallback, width, height, true)) {
+    if (!this.isBlocked(fallback, width, height, true) && !this.isTooCloseToShelf(fallback, width, height, 18)) {
       return fallback;
     }
 
@@ -858,6 +896,9 @@ export class GameScene extends Phaser.Scene {
     this.chaosBar.width = 340 * chaosRatio;
     this.chaosBar.fillColor = chaosRatio < 0.35 ? 0x49d35c : chaosRatio < 0.7 ? 0xf4c542 : 0xe24d4d;
     this.xpBar.width = 188 * (this.state.run.xp / this.state.run.xpToNext);
+    const staminaRatio = this.state.player.stamina / this.state.player.staminaMax;
+    this.staminaBar.width = 188 * staminaRatio;
+    this.staminaBar.fillColor = staminaRatio > 0.45 ? 0x5cc8ff : staminaRatio > 0.15 ? 0xf2c14e : 0xe45858;
   }
 
   updateKidVisual(kid) {
@@ -985,6 +1026,10 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
+
+
+
 
 
 
