@@ -7,9 +7,9 @@ export const WORLD = {
 
 export const RUN = {
   durationSeconds: 600,
-  baseChaosPerSecond: 0.05,
-  floorBookChaosWeight: 0.22,
-  agedBookChaosWeight: 0.0025,
+  baseChaosPerSecond: 0.04,
+  floorBookChaosWeight: 0.19,
+  agedBookChaosWeight: 0.0022,
   lowMessChaosRecovery: 0.12,
   levelXpBase: 100,
   levelXpIncrement: 10,
