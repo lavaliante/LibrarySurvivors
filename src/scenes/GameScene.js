@@ -280,7 +280,17 @@ export class GameScene extends Phaser.Scene {
         padding: { x: 14, y: 10 },
         align: 'center',
         wordWrap: { width: 760 }
-      }).setOrigin(0.5).setVisible(false).setScrollFactor(0);
+      }).setOrigin(0.5).setVisible(false).setScrollFactor(0).setInteractive({ useHandCursor: true });
+
+      optionText.on('pointerdown', () => this.selectUpgrade(index));
+      optionText.on('pointerover', () => {
+        if (this.pauseReason === 'levelup') {
+          optionText.setScale(1.02);
+        }
+      });
+      optionText.on('pointerout', () => {
+        optionText.setScale(1);
+      });
 
       this.optionTexts.push(optionText);
     }
