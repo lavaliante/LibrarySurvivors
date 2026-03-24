@@ -126,9 +126,9 @@ export const UPGRADE_POOL = [
   {
     id: 'quiet-zone-policy',
     label: 'Quiet Zone Policy',
-    description: '-2% chaos gain',
+    description: '-5% chaos gain',
     apply: (state) => {
-      state.run.chaosMultiplier *= 0.98;
+      state.run.chaosMultiplier *= 0.95;
     }
   },
   {
