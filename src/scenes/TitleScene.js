@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { WORLD } from '../config/tuning.js';
 
-const TITLE_BACKGROUND = { key: 'library-bg-1', path: 'images/library1.jpg' };
+const TITLE_VIDEO = { key: 'library-video', path: 'images/library.mp4' };
 const TITLE_SOUNDTRACK_VOLUME = 0.10;
 const GAME_SOUNDTRACK_VOLUME = 0.42;
 
@@ -19,9 +19,10 @@ export class TitleScene extends Phaser.Scene {
 
   preload() {
     this.load.audio('soundtrack', 'audio/whistling_in_the_wind.mp3');
+    this.load.audio('menu-select', 'audio/public_menu_select.mp3');
 
-    if (!this.textures.exists(TITLE_BACKGROUND.key)) {
-      this.load.image(TITLE_BACKGROUND.key, TITLE_BACKGROUND.path);
+    if (!this.cache.video.exists(TITLE_VIDEO.key)) {
+      this.load.video(TITLE_VIDEO.key, TITLE_VIDEO.path, 'loadeddata', false, true);
     }
   }
 
@@ -29,6 +30,7 @@ export class TitleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#14100d');
     this.soundtrack = this.sound.get('soundtrack') ?? this.sound.add('soundtrack', { loop: true, volume: TITLE_SOUNDTRACK_VOLUME });
     this.soundtrack.setVolume(TITLE_SOUNDTRACK_VOLUME);
+    this.menuSelectSound = this.sound.add('menu-select', { volume: 0.35 });
     this.instructionsVisible = false;
 
     this.drawBackdrop();
@@ -40,9 +42,11 @@ export class TitleScene extends Phaser.Scene {
   }
 
   drawBackdrop() {
-    this.add.image(WORLD.width / 2, WORLD.height / 2, TITLE_BACKGROUND.key)
+    this.backgroundVideo = this.add.video(WORLD.width / 2, WORLD.height / 2, TITLE_VIDEO.key)
       .setDisplaySize(WORLD.width, WORLD.height)
       .setDepth(DEPTHS.background);
+    this.backgroundVideo.setMute(true);
+    this.backgroundVideo.play(true);
 
     this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x120b08, 0.18)
       .setDepth(DEPTHS.overlay);
@@ -51,7 +55,6 @@ export class TitleScene extends Phaser.Scene {
   }
 
   drawHeroText() {
-
     this.add.text(WORLD.width / 2, 112, 'LIBRARY\nSURVIVORS', {
       fontFamily: 'monospace',
       fontSize: '46px',
@@ -140,6 +143,8 @@ export class TitleScene extends Phaser.Scene {
 
     const body = this.add.text(WORLD.width / 2, 340, [
       'MOVE WITH WASD OR THE ARROW KEYS.',
+      'HOLD SHIFT TO SPRINT UNTIL YOUR STAMINA BAR RUNS OUT.',
+      'STAMINA RECOVERS A FEW SECONDS AFTER YOU STOP SPRINTING.',
       'BOOKS ARE PICKED UP AUTOMATICALLY WHEN YOU WALK CLOSE TO THEM.',
       'STAND NEAR THE CORRECT SHELF TO FILE MATCHING BOOKS BACK IN PLACE.',
       'CATCH KIDS WHILE THEY ARE CARRYING BOOKS TO INTERCEPT THEM.',
@@ -179,6 +184,7 @@ export class TitleScene extends Phaser.Scene {
       button.setFillStyle(hoveredColor, 0.9);
       button.setScale(1.03);
       text.setScale(1.03);
+      this.playMenuHoverSound();
     });
 
     button.on('pointerout', () => {
@@ -218,6 +224,18 @@ export class TitleScene extends Phaser.Scene {
     }
 
     this.soundtrack.setVolume(TITLE_SOUNDTRACK_VOLUME);
+  }
+
+  playMenuHoverSound() {
+    if (!this.menuSelectSound) {
+      return;
+    }
+
+    if (this.menuSelectSound.isPlaying) {
+      this.menuSelectSound.stop();
+    }
+
+    this.menuSelectSound.play();
   }
 
   toggleInstructions(forceState) {

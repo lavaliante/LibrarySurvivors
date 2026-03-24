@@ -11,6 +11,8 @@ import { createLibraryLayout } from '../data/layout.js';
 import { clamp, distance, normalize, randomPointInCircle } from '../utils/geometry.js';
 
 const CHAOS_RELIEF_PER_SHELVED_BOOK = 3.5;
+const CHASE_LAUGH_DISTANCE = 260;
+const CHASE_LAUGH_COOLDOWN = 1.4;
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -37,6 +39,26 @@ export class GameScene extends Phaser.Scene {
     if (!this.textures.exists('kids-sheet')) {
       this.load.spritesheet('kids-sheet', 'images/kids.png', { frameWidth: 135, frameHeight: 184, endFrame: 9 });
     }
+
+    if (!this.cache.audio.exists('kid-book-pickup')) {
+      this.load.audio('kid-book-pickup', 'audio/public_yay.mp3');
+    }
+
+    if (!this.cache.audio.exists('player-sprint')) {
+      this.load.audio('player-sprint', 'audio/public_out_of_breath.mp3');
+    }
+
+    if (!this.cache.audio.exists('kid-laugh-1')) {
+      this.load.audio('kid-laugh-1', 'audio/public_kid_laughing_1.mp3');
+    }
+
+    if (!this.cache.audio.exists('kid-laugh-2')) {
+      this.load.audio('kid-laugh-2', 'audio/public_kid_laughing_2.mp3');
+    }
+
+    if (!this.cache.audio.exists('kid-laugh-3')) {
+      this.load.audio('kid-laugh-3', 'audio/public_kid_laughing_3.mp3');
+    }
   }
 
   create() {
@@ -62,6 +84,9 @@ export class GameScene extends Phaser.Scene {
     this.spawnKid('wanderer');
     this.spawnAccumulator = 4;
     this.setStatus('Keep the shelves under control.');
+    this.sprintSound = this.sound.add('player-sprint', { loop: true, volume: 0.2 });
+    this.kidLaughSounds = ['kid-laugh-1', 'kid-laugh-2', 'kid-laugh-3'];
+    this.chaseLaughCooldown = 0;
 
     const soundtrack = this.sound.get('soundtrack');
     if (soundtrack?.isPlaying) {
@@ -291,6 +316,7 @@ export class GameScene extends Phaser.Scene {
 
     this.updatePlayer(delta);
     this.updateKids(delta);
+    this.updateChaseLaughs(delta);
     this.handleBookPickup();
     this.handleInterceptions();
     this.handleShelving();
@@ -347,9 +373,52 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.updatePlayerAnimation(delta, movementX, movementY);
+    this.updateSprintSound();
 
     this.state.player.x = this.player.x;
     this.state.player.y = this.player.y;
+  }
+
+  updateSprintSound() {
+    if (!this.sprintSound) {
+      return;
+    }
+
+    if (this.state.player.isSprinting) {
+      if (!this.sprintSound.isPlaying) {
+        this.sprintSound.play();
+      }
+      return;
+    }
+
+    if (this.sprintSound.isPlaying) {
+      this.sprintSound.stop();
+    }
+  }
+
+  updateChaseLaughs(delta) {
+    this.chaseLaughCooldown = Math.max(0, (this.chaseLaughCooldown ?? 0) - delta);
+
+    const carryingKids = this.state.kids.filter((kid) => kid.state === 'carrying' && kid.carrying.length > 0);
+    for (const kid of carryingKids) {
+      const currentDistance = distance(kid, this.player);
+      const previousDistance = kid.lastPlayerDistance ?? currentDistance;
+      const isApproaching = currentDistance < previousDistance - 2;
+
+      if (this.state.player.isSprinting && isApproaching && currentDistance <= CHASE_LAUGH_DISTANCE && this.chaseLaughCooldown <= 0) {
+        const soundKey = Phaser.Utils.Array.GetRandom(this.kidLaughSounds);
+        this.sound.play(soundKey, { volume: 0.34 });
+        this.chaseLaughCooldown = CHASE_LAUGH_COOLDOWN;
+      }
+
+      kid.lastPlayerDistance = currentDistance;
+    }
+
+    for (const kid of this.state.kids) {
+      if (kid.state !== 'carrying' || kid.carrying.length === 0) {
+        kid.lastPlayerDistance = distance(kid, this.player);
+      }
+    }
   }
 
   updatePlayerAnimation(delta, movementX, movementY) {
@@ -411,6 +480,7 @@ export class GameScene extends Phaser.Scene {
               kid.carrying = grabbed;
               kid.state = 'carrying';
               kid.dropTarget = this.chooseDropTarget(kid, archetype);
+              this.sound.play('kid-book-pickup', { volume: 0.32 });
               this.updateKidVisual(kid);
             } else {
               kid.state = 'idle';
@@ -526,7 +596,10 @@ export class GameScene extends Phaser.Scene {
   handleShelving() {
     if (this.state.player.carriedBooks.length === 0) return;
 
-    const nearbyShelves = this.state.shelves.filter((shelf) => distance(shelf, this.player) <= this.state.player.shelfRadius);
+    const nearbyShelves = this.state.shelves.filter((shelf) => {
+      return Math.abs(this.player.x - shelf.x) <= shelf.width / 2 + this.state.player.shelfRadius
+        && Math.abs(this.player.y - shelf.y) <= shelf.height / 2 + this.state.player.shelfRadius;
+    });
     if (nearbyShelves.length === 0) return;
 
     const shelfLimit = Math.max(1, Math.floor(this.shelfTimer * this.state.player.shelfRatePerSecond));
@@ -672,7 +745,8 @@ export class GameScene extends Phaser.Scene {
       carrying: [],
       fleeTimer: 0,
       appearanceIndex: this.mathRng.integerInRange(0, 4),
-      facing: this.mathRng.pick(['left', 'right'])
+      facing: this.mathRng.pick(['left', 'right']),
+      lastPlayerDistance: distance({ x: spawn.x, y: spawn.y }, this.player ?? { x: this.layout.playerSpawn.x, y: this.layout.playerSpawn.y })
     };
 
     const sprite = this.add.container(kid.x, kid.y);
@@ -959,6 +1033,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   pauseSimulation(title, description) {
+    if (this.sprintSound?.isPlaying) {
+      this.sprintSound.stop();
+    }
+
     this.isPausedByMenu = true;
     this.pauseReason = this.pauseReason || 'pause';
     this.pauseOverlay.setVisible(true);
@@ -986,6 +1064,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   endRun(won) {
+    if (this.sprintSound?.isPlaying) {
+      this.sprintSound.stop();
+    }
+
     this.scene.start('end', {
       won,
       timeText: this.formatTime(Math.max(0, this.state.run.timerRemaining), true),
@@ -1026,6 +1108,7 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
 
 
 

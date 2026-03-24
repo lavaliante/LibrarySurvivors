@@ -172,15 +172,5 @@ export const EVENT_DEFS = [
     end: (state) => {
       state.run.chaosMultiplier /= 0.72;
     }
-  },
-  {
-    id: 'book-cart-spill',
-    name: 'Book Cart Spill',
-    duration: 1,
-    description: 'A cart tips over, scattering books onto the floor.',
-    start: (state, scene) => {
-      scene.scatterEventBooks(8);
-    },
-    end: () => {}
   }
 ];

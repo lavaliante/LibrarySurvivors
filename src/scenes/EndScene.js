@@ -6,9 +6,19 @@ export class EndScene extends Phaser.Scene {
     super('end');
   }
 
+  preload() {
+    if (!this.cache.audio.exists('game-loss')) {
+      this.load.audio('game-loss', 'audio/public_uh_oh.mp3');
+    }
+  }
+
   create(data) {
     const won = Boolean(data?.won);
     this.cameras.main.setBackgroundColor(won ? '#d3ead7' : '#f5d5cf');
+
+    if (!won) {
+      this.sound.play('game-loss', { volume: 0.4 });
+    }
 
     this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 980, 560, 0xfff8ec, 0.97).setStrokeStyle(5, 0x6d4c41);
     this.add.text(WORLD.width / 2, 170, won ? 'Order Restored' : 'Library Overwhelmed', {
