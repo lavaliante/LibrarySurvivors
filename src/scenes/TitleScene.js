@@ -142,28 +142,36 @@ export class TitleScene extends Phaser.Scene {
   createInstructionsPanel() {
     this.instructionsContainer = this.add.container(0, 0).setVisible(false).setDepth(DEPTHS.modal);
 
+    const panelWidth = this.isMobileDevice ? 980 : 900;
+    const panelHeight = this.isMobileDevice ? 540 : 450;
+    const titleY = this.isMobileDevice ? 154 : 180;
+    const bodyY = this.isMobileDevice ? 356 : 372;
+    const bodyFontSize = this.isMobileDevice ? '18px' : '20px';
+    const bodyWrapWidth = this.isMobileDevice ? 640 : 720;
+    const closeButtonY = this.isMobileDevice ? 610 : 545;
+
     const overlay = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x090604, 0.82)
       .setInteractive();
-    const panel = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 900, 450, 0xfff4df, 0.98)
+    const panel = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, panelWidth, panelHeight, 0xfff4df, 0.98)
       .setStrokeStyle(5, 0x4f3423);
 
-    const title = this.add.text(WORLD.width / 2, 180, 'How to play', {
+    const title = this.add.text(WORLD.width / 2, titleY, 'How to play', {
       fontFamily: 'monospace',
       fontSize: '34px',
       fontStyle: 'bold',
       color: '#2d1a10'
     }).setOrigin(0.5);
 
-    const body = this.add.text(WORLD.width / 2, 372, this.getInstructionsCopy(), {
+    const body = this.add.text(WORLD.width / 2, bodyY, this.getInstructionsCopy(), {
       fontFamily: 'monospace',
-      fontSize: '20px',
+      fontSize: bodyFontSize,
       color: '#4f3b2b',
       align: 'left',
       lineSpacing: 16,
-      wordWrap: { width: 720 }
+      wordWrap: { width: bodyWrapWidth }
     }).setOrigin(0.5);
 
-    const closeButton = this.buildButton(WORLD.width / 2, 545, 240, 56, 'CLOSE', 0x24140d, 0xe0b56a, () => {
+    const closeButton = this.buildButton(WORLD.width / 2, closeButtonY, 240, 56, 'CLOSE', 0x24140d, 0xe0b56a, () => {
       this.toggleInstructions(false);
     }, DEPTHS.modal);
 

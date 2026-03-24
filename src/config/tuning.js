@@ -12,7 +12,8 @@ export const RUN = {
   agedBookChaosWeight: 0.0025,
   lowMessChaosRecovery: 0.12,
   levelXpBase: 100,
-  levelXpGrowth: 1,
+  levelXpIncrement: 10,
+
   eventIntervalSeconds: 70
 };
 
@@ -26,7 +27,7 @@ export const PLAYER_BASE = {
   pickupRadius: 52,
   shelfRadius: 62,
   shelfRatePerSecond: 2.6,
-  capacity: 5,
+  capacity: 6,
   repelRadius: 104,
   repelDuration: 1.4,
   interceptRadius: 34,
@@ -77,73 +78,73 @@ export const UPGRADE_POOL = [
   {
     id: 'comfy-shoes',
     label: 'Comfy Shoes',
-    description: '+14% movement speed',
+    description: '+9% movement speed',
     apply: (state) => {
-      state.player.speed *= 1.14;
+      state.player.speed *= 1.09;
     }
   },
   {
     id: 'extendable-grabber',
     label: 'Extendable Grabber',
-    description: '+18 pickup radius',
+    description: '+13 pickup radius',
     apply: (state) => {
-      state.player.pickupRadius += 18;
+      state.player.pickupRadius += 13;
     }
   },
   {
     id: 'book-cart',
     label: 'Book Cart',
-    description: '+2 carrying capacity',
+    description: '+1 carrying capacity',
     apply: (state) => {
-      state.player.capacity += 2;
+      state.player.capacity += 1;
     }
   },
   {
     id: 'dewey-decimal-mastery',
     label: 'Dewey Decimal Mastery',
-    description: '+35% shelving speed',
+    description: '+30% shelving speed',
     apply: (state) => {
-      state.player.shelfRatePerSecond *= 1.35;
+      state.player.shelfRatePerSecond *= 1.30;
     }
   },
   {
     id: 'shelf-whisperer',
     label: 'Shelf Whisperer',
-    description: '+18 shelving radius',
+    description: '+13 shelving radius',
     apply: (state) => {
-      state.player.shelfRadius += 18;
+      state.player.shelfRadius += 13;
     }
   },
   {
     id: 'stern-glare',
     label: 'Stern Glare',
-    description: '+28 kid repulsion radius',
+    description: '+23 kid repulsion radius',
     apply: (state) => {
-      state.player.repelRadius += 28;
+      state.player.repelRadius += 23;
     }
   },
   {
     id: 'quiet-zone-policy',
     label: 'Quiet Zone Policy',
-    description: '-18% chaos gain',
+    description: '-5% chaos gain',
     apply: (state) => {
-      state.run.chaosMultiplier *= 0.82;
+      state.run.chaosMultiplier *= 0.95;
     }
   },
   {
     id: 'perfect-filing',
     label: 'Perfect Filing',
-    description: '+2 streak score bonus',
+    description: '+1 streak score bonus',
     apply: (state) => {
-      state.player.streakBonus += 2;
+      state.player.streakBonus += 1;
     }
   },
   {
     id: 'teacher-voice',
     label: 'Teacher Voice',
-    description: 'Fleeing kids stay panicked longer',
+    description: 'Fleeing kids stay panicked a bit longer',
     apply: (state) => {
-      state.player.repelDuration += 0.45;
+      state.player.repelDuration += 0.25;
     }
   }
 ];

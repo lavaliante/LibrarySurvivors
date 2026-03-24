@@ -109,7 +109,7 @@ export class GameScene extends Phaser.Scene {
         spawnMultiplier: 1,
         level: 1,
         xp: 0,
-        xpToNext: RUN.levelXpBase,
+        xpToNext: this.getXpRequiredForLevel(1),
         score: 0,
         booksShelved: 0,
         interceptions: 0,
@@ -884,6 +884,7 @@ export class GameScene extends Phaser.Scene {
     for (const shelf of nearbyShelves) {
       for (let index = this.state.player.carriedBooks.length - 1; index >= 0; index -= 1) {
         if (shelvedCount >= shelfLimit) break;
+        if (shelf.shelvedCount >= shelf.totalSlots) break;
 
         const book = this.state.player.carriedBooks[index];
         if (book.categoryId !== shelf.categoryId) continue;
@@ -922,10 +923,14 @@ export class GameScene extends Phaser.Scene {
     while (this.state.run.xp >= this.state.run.xpToNext) {
       this.state.run.xp -= this.state.run.xpToNext;
       this.state.run.level += 1;
-      this.state.run.xpToNext = Math.round(RUN.levelXpBase * Math.pow(RUN.levelXpGrowth, this.state.run.level - 1));
+      this.state.run.xpToNext = this.getXpRequiredForLevel(this.state.run.level);
       this.showLevelUp();
       break;
     }
+  }
+
+  getXpRequiredForLevel(level) {
+    return RUN.levelXpBase + (Math.max(1, level) - 1) * RUN.levelXpIncrement;
   }
 
   updateChaos(delta) {
