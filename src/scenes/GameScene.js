@@ -834,6 +834,7 @@ export class GameScene extends Phaser.Scene {
     const movedX = kid.x - previous.x;
     const movedY = kid.y - previous.y;
     const isMoving = Math.abs(movedX) > 0.01 || Math.abs(movedY) > 0.01;
+    const shouldAnimate = isMoving && kid.state !== 'looting';
 
     if (movedX < -0.01) {
       kid.facing = 'left';
@@ -842,7 +843,23 @@ export class GameScene extends Phaser.Scene {
     }
 
     kid.sprite.setFlipX(kid.facing === 'left');
-    kid.sprite.setFrame(kid.appearanceIndex + (isMoving ? 0 : 5));
+
+    if (!shouldAnimate) {
+      kid.walkTimer = 0;
+      kid.walkFrame = 0;
+      kid.sprite.setFrame(kid.appearanceIndex + 5);
+      return;
+    }
+
+    kid.walkTimer = kid.walkTimer ?? 0;
+    kid.walkFrame = kid.walkFrame ?? 0;
+    kid.walkTimer += this.game.loop.delta / 1000;
+    if (kid.walkTimer >= 0.18) {
+      kid.walkTimer = 0;
+      kid.walkFrame = kid.walkFrame === 0 ? 1 : 0;
+    }
+
+    kid.sprite.setFrame(kid.appearanceIndex + (kid.walkFrame === 0 ? 0 : 5));
   }
 
   showLevelUp() {
@@ -934,6 +951,11 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
+
+
+
+
 
 
 
