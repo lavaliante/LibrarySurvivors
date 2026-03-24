@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { WORLD } from '../config/tuning.js';
 
 const TITLE_BACKGROUND = { key: 'library-bg-1', path: 'images/library1.jpg' };
-const TITLE_SOUNDTRACK_VOLUME = 0.14;
+const TITLE_SOUNDTRACK_VOLUME = 0.10;
 const GAME_SOUNDTRACK_VOLUME = 0.42;
 
 const DEPTHS = {
@@ -51,15 +51,6 @@ export class TitleScene extends Phaser.Scene {
   }
 
   drawHeroText() {
-    const titleShadow = this.add.text(WORLD.width / 2 + 6, 118, 'LIBRARY\nSURVIVORS', {
-      fontFamily: 'monospace',
-      fontSize: '46px',
-      fontStyle: 'bold',
-      color: '#1f120b',
-      align: 'center',
-      lineSpacing: 8
-    }).setOrigin(0.5).setDepth(DEPTHS.ui);
-    titleShadow.setLetterSpacing(6);
 
     this.add.text(WORLD.width / 2, 112, 'LIBRARY\nSURVIVORS', {
       fontFamily: 'monospace',
@@ -234,3 +225,4 @@ export class TitleScene extends Phaser.Scene {
     this.instructionsContainer.setVisible(this.instructionsVisible);
   }
 }
+

@@ -673,8 +673,10 @@ export class GameScene extends Phaser.Scene {
       return false;
     }
 
-    return Math.abs(actor.x - shelf.x) <= shelf.width / 2 + padding
-      && Math.abs(actor.y - shelf.y) <= shelf.height / 2 + padding;
+    const actorHalfWidth = 14;
+    const actorHalfHeight = 22;
+    return Math.abs(actor.x - shelf.x) <= shelf.width / 2 + actorHalfWidth + padding
+      && Math.abs(actor.y - shelf.y) <= shelf.height / 2 + actorHalfHeight + padding;
   }
   assignKidTargetShelf(kid) {
     const candidates = this.state.shelves
@@ -983,6 +985,7 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
 
 
 
