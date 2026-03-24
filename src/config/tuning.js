@@ -78,17 +78,17 @@ export const UPGRADE_POOL = [
   {
     id: 'comfy-shoes',
     label: 'Comfy Shoes',
-    description: '+9% movement speed',
+    description: '+5% movement speed',
     apply: (state) => {
-      state.player.speed *= 1.09;
+      state.player.speed *= 1.05;
     }
   },
   {
     id: 'extendable-grabber',
     label: 'Extendable Grabber',
-    description: '+13 pickup radius',
+    description: '+8 pickup radius',
     apply: (state) => {
-      state.player.pickupRadius += 13;
+      state.player.pickupRadius += 8;
     }
   },
   {
@@ -102,33 +102,33 @@ export const UPGRADE_POOL = [
   {
     id: 'dewey-decimal-mastery',
     label: 'Dewey Decimal Mastery',
-    description: '+30% shelving speed',
+    description: '+5% shelving speed',
     apply: (state) => {
-      state.player.shelfRatePerSecond *= 1.30;
+      state.player.shelfRatePerSecond *= 1.05;
     }
   },
   {
     id: 'shelf-whisperer',
     label: 'Shelf Whisperer',
-    description: '+13 shelving radius',
+    description: '+8 shelving radius',
     apply: (state) => {
-      state.player.shelfRadius += 13;
+      state.player.shelfRadius += 8;
     }
   },
   {
     id: 'stern-glare',
     label: 'Stern Glare',
-    description: '+23 kid repulsion radius',
+    description: '+18 kid repulsion radius',
     apply: (state) => {
-      state.player.repelRadius += 23;
+      state.player.repelRadius += 18;
     }
   },
   {
     id: 'quiet-zone-policy',
     label: 'Quiet Zone Policy',
-    description: '-5% chaos gain',
+    description: '-3% chaos gain',
     apply: (state) => {
-      state.run.chaosMultiplier *= 0.95;
+      state.run.chaosMultiplier *= 0.97;
     }
   },
   {
@@ -142,9 +142,9 @@ export const UPGRADE_POOL = [
   {
     id: 'teacher-voice',
     label: 'Teacher Voice',
-    description: 'Fleeing kids stay panicked a bit longer',
+    description: 'Fleeing kids stay panicked slightly longer',
     apply: (state) => {
-      state.player.repelDuration += 0.25;
+      state.player.repelDuration += 0.15;
     }
   }
 ];

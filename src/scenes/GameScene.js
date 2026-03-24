@@ -241,13 +241,6 @@ export class GameScene extends Phaser.Scene {
     this.staminaBarBg = this.add.rectangle(24, 102, 188, 8, 0x120c08).setOrigin(0, 0.5).setScrollFactor(0);
     this.staminaBar = this.add.rectangle(24, 102, 188, 8, 0x5cc8ff).setOrigin(0, 0.5).setScrollFactor(0);
 
-    this.statusText = this.add.text(WORLD.width / 2, WORLD.height - 30, '', {
-      fontSize: '18px',
-      color: '#fff4dd',
-      backgroundColor: '#2a1b12',
-      padding: { x: 12, y: 6 }
-    }).setOrigin(0.5).setScrollFactor(0);
-
     this.debugFloorText = this.add.text(24, WORLD.height - 72, '', {
       fontFamily: 'monospace',
       fontSize: '13px',
@@ -486,19 +479,27 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    this.leftPanel.setScale(1.02, 1.04);
-    this.centerPanel.setScale(1.08, 1.06);
-    this.rightPanel.setScale(1.02, 1.04);
-    this.leftTitle.setFontSize('26px');
-    this.statsText.setFontSize('17px');
-    this.rightStatsText.setFontSize('20px');
-    this.eventText.setFontSize('26px');
-    this.subEventText.setFontSize('15px');
-    this.statusText.setFontSize('20px');
+    const topInset = 22;
+
+    this.leftPanel.setPosition(126, 50 + topInset).setScale(1.02, 1.04);
+    this.centerPanel.setPosition(640, 42 + topInset).setScale(1.08, 1.06);
+    this.rightPanel.setPosition(1138, 50 + topInset).setScale(1.02, 1.04);
+    this.leftTitle.setPosition(24, 18 + topInset).setFontSize('26px');
+    this.statsText.setPosition(24, 44 + topInset).setFontSize('17px');
+    this.rightStatsText.setPosition(1238, 18 + topInset).setFontSize('20px');
+    this.eventText.setPosition(640, 16 + topInset).setFontSize('26px');
+    this.subEventText.setPosition(640, 64 + topInset).setFontSize('15px');
+    this.chaosBarBg.setPosition(470, 47 + topInset);
+    this.chaosBar.setPosition(470, 47 + topInset);
+    this.xpBarBg.setPosition(24, 86 + topInset);
+    this.xpBar.setPosition(24, 86 + topInset);
+    this.staminaBarBg.setPosition(24, 102 + topInset);
+    this.staminaBar.setPosition(24, 102 + topInset);
   }
 
   registerScaleHandlers() {
     this.scale.on('resize', () => {
+      this.applyResponsiveLayout();
       this.layoutMobileControls();
     });
   }
@@ -1405,8 +1406,7 @@ export class GameScene extends Phaser.Scene {
     return this.wallBodies.some((wall) => overlaps(wall)) || (includeShelves && this.state.shelves.some((shelf) => overlaps(shelf.body)));
   }
 
-  setStatus(message) {
-    this.statusText.setText(message);
+  setStatus(_message) {
   }
 }
 
