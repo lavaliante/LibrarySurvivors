@@ -32,7 +32,6 @@ export class TitleScene extends Phaser.Scene {
     this.backgroundIndex = 0;
 
     this.drawBackdrop();
-    this.drawShell();
     this.drawHeroText();
     this.createButtons();
     this.createInstructionsPanel();
@@ -47,14 +46,8 @@ export class TitleScene extends Phaser.Scene {
         .setAlpha(index === 0 ? 1 : 0);
     });
 
-    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x120d09, 0.38);
-
-    for (let index = 0; index < 6; index += 1) {
-      const y = 70 + index * 120;
-      this.add.rectangle(WORLD.width / 2, y, WORLD.width, 2, 0xfff1c1, 0.05);
-    }
-
-    this.add.rectangle(WORLD.width / 2, WORLD.height - 54, WORLD.width, 108, 0x1d130d, 0.72);
+    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x100a07, 0.26);
+    this.add.rectangle(WORLD.width / 2, WORLD.height - 56, WORLD.width, 112, 0x140d09, 0.58);
   }
 
   startBackdropCycle() {
@@ -86,27 +79,25 @@ export class TitleScene extends Phaser.Scene {
     });
   }
 
-  drawShell() {
-    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 1110, 595, 0xf4e7c9, 0.82).setStrokeStyle(6, 0x4f3423, 0.95);
-    this.add.rectangle(WORLD.width / 2, 135, 960, 126, 0x1c120c, 0.78).setStrokeStyle(3, 0xe2bf72, 0.85);
-    this.add.rectangle(WORLD.width / 2, 302, 920, 130, 0xfff7e6, 0.82).setStrokeStyle(2, 0xa77b54, 0.45);
-  }
-
   drawHeroText() {
-    const titleShadow = this.add.text(WORLD.width / 2 + 6, 120, 'LIBRARY\nSURVIVORS', {
+    this.add.rectangle(WORLD.width / 2, 132, 760, 136, 0x120c09, 0.64).setStrokeStyle(3, 0xe6c173, 0.82);
+    this.add.rectangle(WORLD.width / 2, 304, 860, 152, 0x120c09, 0.58).setStrokeStyle(2, 0xe6c173, 0.55);
+
+    const titleShadow = this.add.text(WORLD.width / 2 + 6, 118, 'LIBRARY\nSURVIVORS', {
       fontFamily: 'monospace',
       fontSize: '46px',
       fontStyle: 'bold',
-      color: '#2a160d',
+      color: '#1f120b',
       align: 'center',
       lineSpacing: 8
-    }).setOrigin(0.5, 0.5);
+    }).setOrigin(0.5);
+    titleShadow.setLetterSpacing(6);
 
-    this.add.text(WORLD.width / 2, 114, 'LIBRARY\nSURVIVORS', {
+    this.add.text(WORLD.width / 2, 112, 'LIBRARY\nSURVIVORS', {
       fontFamily: 'monospace',
       fontSize: '46px',
       fontStyle: 'bold',
-      color: '#ffe7a7',
+      color: '#ffe6a0',
       stroke: '#4d2d17',
       strokeThickness: 10,
       align: 'center',
@@ -119,53 +110,51 @@ export class TitleScene extends Phaser.Scene {
         stroke: true,
         fill: false
       }
-    }).setOrigin(0.5, 0.5);
+    }).setOrigin(0.5);
 
-    titleShadow.setLetterSpacing(6);
-
-    this.add.text(WORLD.width / 2, 250, 'Restore order before the whole library turns into 16-bit chaos.', {
+    this.add.text(WORLD.width / 2, 258, 'Restore order before the whole library turns into 16-bit chaos.', {
       fontFamily: 'monospace',
       fontSize: '24px',
       fontStyle: 'bold',
-      color: '#4f3b2b',
+      color: '#fff0c8',
       align: 'center'
     }).setOrigin(0.5);
 
-    this.add.text(WORLD.width / 2, 302, 'Intercept rowdy kids, rescue scattered books, and survive a full thirty-minute shift.', {
+    this.add.text(WORLD.width / 2, 314, 'Intercept rowdy kids, rescue scattered books, and survive a full thirty-minute shift.', {
       fontFamily: 'monospace',
       fontSize: '20px',
-      color: '#6a523d',
+      color: '#f9ddb0',
       align: 'center',
-      wordWrap: { width: 780 }
+      wordWrap: { width: 760 }
     }).setOrigin(0.5);
 
-    this.musicHint = this.add.text(WORLD.width / 2, 368, 'Click Start or Instructions to begin the soundtrack.', {
+    this.musicHint = this.add.text(WORLD.width / 2, 382, 'Click Start or Instructions to begin the soundtrack.', {
       fontFamily: 'monospace',
       fontSize: '17px',
-      color: '#6f4f33',
+      color: '#f2cf8f',
       align: 'center'
     }).setOrigin(0.5);
 
-    this.add.text(WORLD.width / 2, 396, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
+    this.add.text(WORLD.width / 2, 410, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
       fontFamily: 'monospace',
       fontSize: '15px',
-      color: '#5e422d',
+      color: '#ebc17d',
       align: 'center'
     }).setOrigin(0.5);
   }
 
   createButtons() {
-    this.buildButton(WORLD.width / 2, 482, 360, 72, 'START GAME', 0x24140d, 0xe0b56a, () => {
+    this.buildButton(WORLD.width / 2, 494, 360, 72, 'START GAME', 0x24140d, 0xe0b56a, () => {
       this.ensureSoundtrack();
       this.scene.start('game');
     });
 
-    this.buildButton(WORLD.width / 2, 570, 360, 62, 'INSTRUCTIONS', 0x5a3a25, 0xf0c98e, () => {
+    this.buildButton(WORLD.width / 2, 582, 360, 62, 'INSTRUCTIONS', 0x5a3a25, 0xf0c98e, () => {
       this.ensureSoundtrack();
       this.toggleInstructions();
     });
 
-    this.add.text(WORLD.width / 2, 644, 'PRESS ENTER OR SPACE TO START', {
+    this.add.text(WORLD.width / 2, 650, 'PRESS ENTER OR SPACE TO START', {
       fontFamily: 'monospace',
       fontSize: '18px',
       fontStyle: 'bold',
@@ -213,7 +202,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   buildButton(x, y, width, height, label, fillColor, strokeColor, onPress) {
-    const button = this.add.rectangle(x, y, width, height, fillColor)
+    const button = this.add.rectangle(x, y, width, height, fillColor, 0.82)
       .setStrokeStyle(3, strokeColor)
       .setInteractive({ useHandCursor: true });
     const text = this.add.text(x, y, label, {
@@ -225,13 +214,13 @@ export class TitleScene extends Phaser.Scene {
 
     button.on('pointerover', () => {
       const hoveredColor = Phaser.Display.Color.IntegerToColor(fillColor).brighten(18).color;
-      button.setFillStyle(hoveredColor);
+      button.setFillStyle(hoveredColor, 0.9);
       button.setScale(1.03);
       text.setScale(1.03);
     });
 
     button.on('pointerout', () => {
-      button.setFillStyle(fillColor);
+      button.setFillStyle(fillColor, 0.82);
       button.setScale(1);
       text.setScale(1);
     });

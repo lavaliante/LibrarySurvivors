@@ -310,13 +310,13 @@ export class GameScene extends Phaser.Scene {
     if (movementX !== 0) {
       const previousX = this.player.x;
       this.player.x = clamp(this.player.x + movementX, this.layout.bounds.x, this.layout.bounds.x + this.layout.bounds.width);
-      if (this.isBlocked(this.player, 26, 40, true)) this.player.x = previousX;
+      if (this.isBlocked(this.player, 34, 56, true)) this.player.x = previousX;
     }
 
     if (movementY !== 0) {
       const previousY = this.player.y;
       this.player.y = clamp(this.player.y + movementY, this.layout.bounds.y, this.layout.bounds.y + this.layout.bounds.height);
-      if (this.isBlocked(this.player, 26, 40, true)) this.player.y = previousY;
+      if (this.isBlocked(this.player, 34, 56, true)) this.player.y = previousY;
     }
 
     this.updatePlayerAnimation(delta, movementX, movementY);
@@ -415,7 +415,7 @@ export class GameScene extends Phaser.Scene {
           break;
       }
 
-      if (this.isBlocked(kid, 28, 44, false)) {
+      if (this.isBlocked(kid, 28, 44, true)) {
         kid.x = previous.x;
         kid.y = previous.y;
         if (kid.state === 'movingToShelf') kid.state = 'idle';
@@ -702,7 +702,7 @@ export class GameScene extends Phaser.Scene {
 
   dropKidBooks(kid) {
     for (const book of kid.carrying) {
-      const scatter = randomPointInCircle(this, kid.x, kid.y, 24);
+      const scatter = this.findOpenFloorPoint(kid.x, kid.y, 38, 16, 26);
       book.state = 'floor';
       book.x = scatter.x;
       book.y = scatter.y;
@@ -726,7 +726,7 @@ export class GameScene extends Phaser.Scene {
       if (books.length === 0) continue;
 
       const book = books[0];
-      const scatter = randomPointInCircle(this, shelf.x, shelf.y, 90);
+      const scatter = this.findOpenFloorPoint(shelf.x, shelf.y, 110, 16, 26);
       book.state = 'floor';
       book.floorAge = 0;
       book.x = scatter.x;
@@ -739,6 +739,33 @@ export class GameScene extends Phaser.Scene {
     this.state.run.streak = 0;
   }
 
+  findOpenFloorPoint(originX, originY, radius, width, height) {
+    for (let attempt = 0; attempt < 18; attempt += 1) {
+      const point = randomPointInCircle(this, originX, originY, radius);
+      const candidate = {
+        x: clamp(point.x, this.layout.bounds.x, this.layout.bounds.x + this.layout.bounds.width),
+        y: clamp(point.y, this.layout.bounds.y, this.layout.bounds.y + this.layout.bounds.height)
+      };
+
+      if (!this.isBlocked(candidate, width, height, true)) {
+        return candidate;
+      }
+    }
+
+    const fallback = {
+      x: clamp(originX, this.layout.bounds.x, this.layout.bounds.x + this.layout.bounds.width),
+      y: clamp(originY, this.layout.bounds.y, this.layout.bounds.y + this.layout.bounds.height)
+    };
+
+    if (!this.isBlocked(fallback, width, height, true)) {
+      return fallback;
+    }
+
+    return {
+      x: this.layout.playerSpawn.x,
+      y: this.layout.playerSpawn.y
+    };
+  }
   updateEvents() {
     if (this.state.run.activeEvent && this.state.run.elapsed >= this.state.run.eventEndsAt) {
       this.state.run.activeEvent.end(this.state, this);
@@ -940,6 +967,7 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
 
 
 
