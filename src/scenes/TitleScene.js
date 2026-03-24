@@ -125,6 +125,8 @@ export class TitleScene extends Phaser.Scene {
 
   createButtons() {
     this.buildButton(WORLD.width / 2, 494, 360, 72, 'START GAME', 0x24140d, 0xe0b56a, () => {
+      this.unlockAudio();
+      this.ensureSoundtrack();
       if (this.soundtrack) {
         this.soundtrack.setVolume(GAME_SOUNDTRACK_VOLUME);
       }
@@ -135,14 +137,6 @@ export class TitleScene extends Phaser.Scene {
       this.toggleInstructions();
     });
 
-    this.add.text(WORLD.width / 2, 650, 'PRESS ENTER OR SPACE TO START', {
-      fontFamily: 'monospace',
-      fontSize: '18px',
-      fontStyle: 'bold',
-      color: '#f6d89a',
-      stroke: '#2b1a11',
-      strokeThickness: 3
-    }).setOrigin(0.5).setDepth(DEPTHS.ui);
   }
 
   createInstructionsPanel() {
@@ -246,6 +240,10 @@ export class TitleScene extends Phaser.Scene {
   }
 
   unlockAudio() {
+    if (this.sound.context?.state === 'suspended') {
+      this.sound.context.resume();
+    }
+
     if (this.sound.locked) {
       this.sound.unlock();
     }

@@ -24,7 +24,8 @@
     }
 
     body {
-      min-height: 100vh;
+      min-height: var(--app-height, 100vh);
+      min-height: 100dvh;
       display: grid;
       place-items: center;
       font-family: monospace;
@@ -33,7 +34,9 @@
     #game-root {
       position: relative;
       width: 100vw;
-      height: 100vh;
+      width: 100dvw;
+      height: var(--app-height, 100vh);
+      height: 100dvh;
       display: grid;
       place-items: center;
       overflow: hidden;
@@ -73,17 +76,36 @@
       display: flex;
     }
   </style>
-  <script type="module" crossorigin src="./assets/index-CV3JsAou.js"></script>
+  <script type="module" crossorigin src="./assets/index-BVyRYmTQ.js"></script>
 </head>
 <body>
   <div id="game-root">
     <div id="rotate-notice">Rotate your device to landscape for the best library shift.</div>
   </div>
   <script>
+    const gameRoot = document.getElementById('game-root');
+
     const updateMobileOrientationState = () => {
       const isTouch = window.matchMedia('(pointer: coarse)').matches;
       const isPortrait = window.innerHeight > window.innerWidth;
       document.body.classList.toggle('mobile-portrait', isTouch && isPortrait);
+    };
+
+    const syncViewportHeight = () => {
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    };
+
+    const requestMobileFullscreen = async () => {
+      const isTouch = window.matchMedia('(pointer: coarse)').matches;
+      const isLandscape = window.innerWidth >= window.innerHeight;
+      if (!isTouch || !isLandscape || document.fullscreenElement || !gameRoot?.requestFullscreen) {
+        return;
+      }
+
+      try {
+        await gameRoot.requestFullscreen({ navigationUI: 'hide' });
+      } catch (error) {
+      }
     };
 
     const lockLandscape = async () => {
@@ -95,14 +117,23 @@
         await window.screen?.orientation?.lock?.('landscape');
       } catch (error) {
       }
+
+      await requestMobileFullscreen();
     };
 
     document.addEventListener('gesturestart', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('dblclick', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
-    window.addEventListener('resize', updateMobileOrientationState);
-    window.addEventListener('orientationchange', updateMobileOrientationState);
-    window.addEventListener('pointerdown', lockLandscape, { once: true });
+    window.addEventListener('resize', () => {
+      syncViewportHeight();
+      updateMobileOrientationState();
+    });
+    window.addEventListener('orientationchange', () => {
+      syncViewportHeight();
+      updateMobileOrientationState();
+    });
+    window.addEventListener('pointerdown', lockLandscape);
+    syncViewportHeight();
     updateMobileOrientationState();
   </script>
 </body>

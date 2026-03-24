@@ -89,6 +89,7 @@ export class GameScene extends Phaser.Scene {
     this.spawnKid('wanderer');
     this.spawnAccumulator = 4;
     this.setStatus('Keep the shelves under control.');
+    this.soundtrack = this.sound.get('soundtrack') ?? this.sound.add('soundtrack', { loop: true, volume: 0.42 });
     this.sprintSound = this.sound.add('player-sprint', { loop: true, volume: 0.2 });
     this.kidLaughSounds = ['kid-laugh-1', 'kid-laugh-2', 'kid-laugh-3'];
     this.kidPickupSounds = ['kid-book-pickup', ...this.kidLaughSounds];
@@ -485,23 +486,35 @@ export class GameScene extends Phaser.Scene {
 
   registerAudioUnlock() {
     this.input.once('pointerdown', () => {
-      this.sound.unlock();
+      this.unlockAudio();
       this.ensureGameplaySoundtrack();
     });
   }
 
-  ensureGameplaySoundtrack() {
+  unlockAudio() {
+    if (this.sound.context?.state === 'suspended') {
+      this.sound.context.resume();
+    }
+
     if (this.sound.locked) {
+      this.sound.unlock();
+    }
+  }
+
+  ensureGameplaySoundtrack() {
+    if (this.sound.locked || this.sound.context?.state === 'suspended') {
       return;
     }
 
-    const soundtrack = this.sound.get('soundtrack');
-    if (soundtrack?.isPlaying) {
-      soundtrack.setVolume(0.42);
-      return;
+    if (!this.soundtrack) {
+      this.soundtrack = this.sound.get('soundtrack') ?? this.sound.add('soundtrack', { loop: true, volume: 0.42 });
     }
 
-    this.sound.play('soundtrack', { loop: true, volume: 0.42 });
+    if (!this.soundtrack.isPlaying) {
+      this.soundtrack.play({ loop: true, volume: 0.42 });
+    }
+
+    this.soundtrack.setVolume(0.42);
   }
 
   togglePauseMenu() {
@@ -1051,28 +1064,6 @@ export class GameScene extends Phaser.Scene {
       this.setStatus('Books hit the floor. Chaos is rising.');
     }
   }
-  scatterEventBooks(count) {
-    for (let index = 0; index < count; index += 1) {
-      const shelf = Phaser.Utils.Array.GetRandom(this.state.shelves);
-      if (shelf.shelvedCount <= 0) continue;
-
-      const books = this.takeBooksFromShelf(shelf, 1);
-      if (books.length === 0) continue;
-
-      const book = books[0];
-      const scatter = this.findOpenFloorPoint(shelf.x, shelf.y, 110, 16, 26);
-      book.state = 'floor';
-      book.floorAge = 0;
-      book.x = scatter.x;
-      book.y = scatter.y;
-      book.ownerId = null;
-      book.shadow.setPosition(scatter.x, scatter.y + 7).setVisible(true);
-      book.sprite.setPosition(scatter.x, scatter.y).setVisible(true);
-    }
-
-    this.state.run.streak = 0;
-  }
-
   isTooCloseToShelf(target, width, height, padding = 0) {
     const left = target.x - width / 2;
     const right = target.x + width / 2;
