@@ -74,6 +74,7 @@ export class GameScene extends Phaser.Scene {
     this.isPausedByMenu = false;
     this.pauseReason = '';
     this.isMobileDevice = this.shouldUseMobileControls();
+    this.debugFloorBookEvents = [];
 
     this.state = this.createInitialState();
     this.buildWorld();
@@ -246,6 +247,14 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#2a1b12',
       padding: { x: 12, y: 6 }
     }).setOrigin(0.5).setScrollFactor(0);
+
+    this.debugFloorText = this.add.text(24, WORLD.height - 72, '', {
+      fontFamily: 'monospace',
+      fontSize: '13px',
+      color: '#ffd6a5',
+      backgroundColor: '#1f120c',
+      padding: { x: 8, y: 4 }
+    }).setScrollFactor(0).setDepth(140).setVisible(false);
 
     this.pauseOverlay = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x0c0806, 0.7).setVisible(false).setScrollFactor(0);
     this.pauseTitle = this.add.text(WORLD.width / 2, 168, '', {
@@ -485,19 +494,30 @@ export class GameScene extends Phaser.Scene {
   }
 
   registerAudioUnlock() {
-    this.input.once('pointerdown', () => {
-      this.unlockAudio();
+    this.input.once('pointerdown', async () => {
+      await this.unlockAudio();
       this.ensureGameplaySoundtrack();
     });
   }
 
-  unlockAudio() {
+  async unlockAudio() {
     if (this.sound.context?.state === 'suspended') {
-      this.sound.context.resume();
+      try {
+        await this.sound.context.resume();
+      } catch (error) {
+      }
     }
 
     if (this.sound.locked) {
       this.sound.unlock();
+    }
+
+    if (this.sound.context?.state === 'suspended') {
+      await new Promise((resolve) => this.time.delayedCall(50, resolve));
+      try {
+        await this.sound.context.resume();
+      } catch (error) {
+      }
     }
   }
 
@@ -1047,6 +1067,24 @@ export class GameScene extends Phaser.Scene {
     };
   }
 
+  recordFloorBookEvent(source, book, position, extra = {}) {
+    const event = {
+      time: Math.round(this.state.run.elapsed),
+      source,
+      book: book?.label ?? 'Unknown',
+      x: Math.round(position.x),
+      y: Math.round(position.y),
+      ...extra
+    };
+
+    this.debugFloorBookEvents.unshift(event);
+    this.debugFloorBookEvents = this.debugFloorBookEvents.slice(0, 3);
+
+    const summary = `${source}: ${event.book} @ ${event.x},${event.y}` + (event.kidId ? ` by ${event.kidId}` : '');
+    this.debugFloorText?.setText(`Floor debug\n${summary}`).setVisible(true);
+    console.info('[FloorBookDebug]', event);
+  }
+
   dropKidBooks(kid) {
     for (const book of kid.carrying) {
       const scatter = this.findOpenFloorPoint(kid.x, kid.y, 38, 16, 26);
@@ -1057,6 +1095,7 @@ export class GameScene extends Phaser.Scene {
       book.floorAge = 0;
       book.shadow.setPosition(scatter.x, scatter.y + 7).setVisible(true);
       book.sprite.setPosition(scatter.x, scatter.y).setVisible(true);
+      this.recordFloorBookEvent('kid-drop', book, scatter, { kidId: kid.id });
     }
 
     if (kid.carrying.length > 0) {
@@ -1331,6 +1370,7 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
 
 
 

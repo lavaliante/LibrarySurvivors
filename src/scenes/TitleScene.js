@@ -124,8 +124,8 @@ export class TitleScene extends Phaser.Scene {
   }
 
   createButtons() {
-    this.buildButton(WORLD.width / 2, 494, 360, 72, 'START GAME', 0x24140d, 0xe0b56a, () => {
-      this.unlockAudio();
+    this.buildButton(WORLD.width / 2, 494, 360, 72, 'START GAME', 0x24140d, 0xe0b56a, async () => {
+      await this.unlockAudio();
       this.ensureSoundtrack();
       if (this.soundtrack) {
         this.soundtrack.setVolume(GAME_SOUNDTRACK_VOLUME);
@@ -212,8 +212,9 @@ export class TitleScene extends Phaser.Scene {
   }
 
   registerInput() {
-    const startGame = () => {
-      this.unlockAudio();
+    const startGame = async () => {
+      await this.unlockAudio();
+      this.ensureSoundtrack();
       if (this.soundtrack) {
         this.soundtrack.setVolume(GAME_SOUNDTRACK_VOLUME);
       }
@@ -233,19 +234,30 @@ export class TitleScene extends Phaser.Scene {
   }
 
   registerAudioUnlock() {
-    this.input.once('pointerdown', () => {
-      this.unlockAudio();
+    this.input.once('pointerdown', async () => {
+      await this.unlockAudio();
       this.ensureSoundtrack();
     });
   }
 
-  unlockAudio() {
+  async unlockAudio() {
     if (this.sound.context?.state === 'suspended') {
-      this.sound.context.resume();
+      try {
+        await this.sound.context.resume();
+      } catch (error) {
+      }
     }
 
     if (this.sound.locked) {
       this.sound.unlock();
+    }
+
+    if (this.sound.context?.state === 'suspended') {
+      await new Promise((resolve) => this.time.delayedCall(50, resolve));
+      try {
+        await this.sound.context.resume();
+      } catch (error) {
+      }
     }
   }
 
