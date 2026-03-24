@@ -960,15 +960,15 @@ export class GameScene extends Phaser.Scene {
     shelf.shadow = this.add.rectangle(shelf.x + 5, shelf.y + 8, shelf.width + 6, shelf.height + 6, 0x000000, 0.16);
     shelf.body = this.add.rectangle(shelf.x, shelf.y, shelf.width, shelf.height, 0x5b381f).setStrokeStyle(3, 0x2d1a0f);
     shelf.strip = this.add.rectangle(shelf.x, shelf.y - shelf.height / 2 + 8, shelf.width - 10, 10, shelf.color);
-    shelf.labelText = this.add.text(shelf.x, shelf.y - shelf.height / 2 + 24, shelf.label.toUpperCase(), {
+    shelf.labelText = this.add.text(shelf.x, shelf.y - shelf.height / 2 + 8, shelf.label.toUpperCase(), {
       fontFamily: 'monospace',
-      fontSize: '10px',
+      fontSize: '7px',
       fontStyle: 'bold',
       color: '#fff5dc',
       align: 'center',
       stroke: '#2d1a0f',
-      strokeThickness: 2,
-      wordWrap: { width: shelf.width - 14, useAdvancedWrap: true }
+      strokeThickness: 1,
+      wordWrap: { width: shelf.width - 16, useAdvancedWrap: true }
     }).setOrigin(0.5, 0.5);
     shelf.base = this.add.rectangle(shelf.x, shelf.y + shelf.height / 2 + 8, 28, 12, 0x49301a);
     shelf.leftFoot = this.add.rectangle(shelf.x - 20, shelf.y + shelf.height / 2 + 15, 8, 14, 0x3a2415);
