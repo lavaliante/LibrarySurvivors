@@ -86,6 +86,7 @@ export class GameScene extends Phaser.Scene {
     this.setStatus('Keep the shelves under control.');
     this.sprintSound = this.sound.add('player-sprint', { loop: true, volume: 0.2 });
     this.kidLaughSounds = ['kid-laugh-1', 'kid-laugh-2', 'kid-laugh-3'];
+    this.kidPickupSounds = ['kid-book-pickup', ...this.kidLaughSounds];
     this.chaseLaughCooldown = 0;
 
     const soundtrack = this.sound.get('soundtrack');
@@ -480,7 +481,8 @@ export class GameScene extends Phaser.Scene {
               kid.carrying = grabbed;
               kid.state = 'carrying';
               kid.dropTarget = this.chooseDropTarget(kid, archetype);
-              this.sound.play('kid-book-pickup', { volume: 0.32 });
+              const pickupSoundKey = Phaser.Utils.Array.GetRandom(this.kidPickupSounds);
+              this.sound.play(pickupSoundKey, { volume: 0.32 });
               this.updateKidVisual(kid);
             } else {
               kid.state = 'idle';

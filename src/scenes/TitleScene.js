@@ -43,15 +43,33 @@ export class TitleScene extends Phaser.Scene {
 
   drawBackdrop() {
     this.backgroundVideo = this.add.video(WORLD.width / 2, WORLD.height / 2, TITLE_VIDEO.key)
-      .setDisplaySize(WORLD.width, WORLD.height)
+      .setOrigin(0.5)
       .setDepth(DEPTHS.background);
     this.backgroundVideo.setMute(true);
+    this.backgroundVideo.on('created', () => this.fitBackdropVideo());
     this.backgroundVideo.play(true);
+    this.fitBackdropVideo();
 
     this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x120b08, 0.18)
       .setDepth(DEPTHS.overlay);
     this.add.rectangle(WORLD.width / 2, WORLD.height - 56, WORLD.width, 112, 0x140d09, 0.48)
       .setDepth(DEPTHS.overlay);
+  }
+
+  fitBackdropVideo() {
+    const source = this.backgroundVideo?.video;
+    const sourceWidth = source?.videoWidth ?? source?.width ?? 0;
+    const sourceHeight = source?.videoHeight ?? source?.height ?? 0;
+
+    if (!sourceWidth || !sourceHeight) {
+      this.time.delayedCall(120, () => this.fitBackdropVideo());
+      return;
+    }
+
+    const scale = Math.max(WORLD.width / sourceWidth, WORLD.height / sourceHeight);
+    this.backgroundVideo
+      .setPosition(WORLD.width / 2, WORLD.height / 2)
+      .setScale(scale);
   }
 
   drawHeroText() {
