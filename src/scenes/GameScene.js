@@ -494,10 +494,24 @@ export class GameScene extends Phaser.Scene {
   }
 
   registerAudioUnlock() {
-    this.input.once('pointerdown', async () => {
+    const unlockAndStart = async () => {
       await this.unlockAudio();
       this.ensureGameplaySoundtrack();
-    });
+    };
+
+    this.input.once('pointerdown', unlockAndStart);
+
+    const canvas = this.game.canvas;
+    if (canvas) {
+      const domUnlock = async () => {
+        canvas.removeEventListener('touchend', domUnlock);
+        canvas.removeEventListener('click', domUnlock);
+        await unlockAndStart();
+      };
+
+      canvas.addEventListener('touchend', domUnlock, { once: true, passive: true });
+      canvas.addEventListener('click', domUnlock, { once: true, passive: true });
+    }
   }
 
   async unlockAudio() {

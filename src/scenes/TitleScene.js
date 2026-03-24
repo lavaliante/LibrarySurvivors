@@ -32,11 +32,13 @@ export class TitleScene extends Phaser.Scene {
     this.soundtrack.setVolume(TITLE_SOUNDTRACK_VOLUME);
     this.menuSelectSound = this.sound.add('menu-select', { volume: 0.35 });
     this.instructionsVisible = false;
+    this.requiresAudioGate = Boolean((this.sys.game.device.os.iOS || this.sys.game.device.browser.safari) && this.sys.game.device.input.touch);
 
     this.drawBackdrop();
     this.drawHeroText();
     this.createButtons();
     this.createInstructionsPanel();
+    this.createAudioGate();
     this.registerInput();
     this.registerAudioUnlock();
     this.ensureSoundtrack();
@@ -139,6 +141,36 @@ export class TitleScene extends Phaser.Scene {
 
   }
 
+  createAudioGate() {
+    if (!this.requiresAudioGate) {
+      return;
+    }
+
+    this.audioGate = this.add.container(0, 0).setDepth(DEPTHS.modal + 5);
+    const shade = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x090604, 0.62)
+      .setInteractive({ useHandCursor: true });
+    const prompt = this.add.text(WORLD.width / 2, WORLD.height - 118, 'TAP TO ENABLE SOUND', {
+      fontFamily: 'monospace',
+      fontSize: '24px',
+      fontStyle: 'bold',
+      color: '#fff0c7',
+      backgroundColor: '#24140d',
+      padding: { x: 16, y: 10 },
+      stroke: '#5b341a',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    const unlock = async () => {
+      await this.unlockAudio();
+      this.ensureSoundtrack();
+      this.audioGate?.setVisible(false);
+    };
+
+    shade.on('pointerup', unlock);
+    prompt.setInteractive({ useHandCursor: true }).on('pointerup', unlock);
+    this.audioGate.add([shade, prompt]);
+  }
+
   createInstructionsPanel() {
     this.instructionsContainer = this.add.container(0, 0).setVisible(false).setDepth(DEPTHS.modal);
 
@@ -234,10 +266,27 @@ export class TitleScene extends Phaser.Scene {
   }
 
   registerAudioUnlock() {
-    this.input.once('pointerdown', async () => {
+    const unlockAndStart = async () => {
       await this.unlockAudio();
       this.ensureSoundtrack();
-    });
+      if (this.requiresAudioGate) {
+        this.audioGate?.setVisible(false);
+      }
+    };
+
+    this.input.once('pointerdown', unlockAndStart);
+
+    const canvas = this.game.canvas;
+    if (canvas) {
+      const domUnlock = async () => {
+        canvas.removeEventListener('touchend', domUnlock);
+        canvas.removeEventListener('click', domUnlock);
+        await unlockAndStart();
+      };
+
+      canvas.addEventListener('touchend', domUnlock, { once: true, passive: true });
+      canvas.addEventListener('click', domUnlock, { once: true, passive: true });
+    }
   }
 
   async unlockAudio() {
@@ -262,7 +311,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   ensureSoundtrack() {
-    if (this.sound.locked) {
+    if (this.sound.locked || this.sound.context?.state === 'suspended') {
       return;
     }
 
