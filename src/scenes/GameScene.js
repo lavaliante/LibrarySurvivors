@@ -340,10 +340,10 @@ export class GameScene extends Phaser.Scene {
     if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
 
     const wantsToSprint = (this.cursors.shift?.isDown || this.keys.sprint.isDown) && (dx !== 0 || dy !== 0);
-    const canSprint = wantsToSprint && this.state.player.stamina > 0 && this.state.player.staminaRecoveryCooldown <= 0;
-    this.state.player.isSprinting = canSprint;
+    const canStartSprint = wantsToSprint && this.state.player.stamina > 0 && (this.state.player.staminaRecoveryCooldown <= 0 || this.state.player.isSprinting);
+    this.state.player.isSprinting = canStartSprint;
 
-    if (canSprint) {
+    if (this.state.player.isSprinting) {
       this.state.player.stamina = Math.max(0, this.state.player.stamina - this.state.player.staminaDrainPerSecond * delta);
       this.state.player.staminaRecoveryCooldown = this.state.player.staminaRecoveryDelay;
       if (this.state.player.stamina <= 0) {
