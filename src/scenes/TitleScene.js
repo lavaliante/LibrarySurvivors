@@ -153,14 +153,14 @@ export class TitleScene extends Phaser.Scene {
       color: '#2d1a10'
     }).setOrigin(0.5);
 
-    const body = this.add.text(WORLD.width / 2, 352, [
-      '- Move with WASD or the arrow keys.',
-      '- Hold Shift to sprint until your stamina bar runs out.',
-      '- Stamina recovers a few seconds after you stop sprinting.',
-      '- Books are picked up automatically when you walk close to them.',
-      '- Stand near the correct shelf to file matching books back in place.',
-      '- Catch kids while they are carrying books to intercept them.',
-      '- Press P during the run to pause your shift.'
+    const body = this.add.text(WORLD.width / 2, 372, [
+      '1. Move with WASD or the arrow keys.',
+      '2. Hold Shift to sprint until your stamina bar runs out.',
+      '3. Stamina recovers a few seconds after you stop sprinting.',
+      '4. Books are picked up automatically when you walk close to them.',
+      '5. Stand near the correct shelf to file matching books back in place.',
+      '6. Catch kids while they are carrying books to intercept them.',
+      '7. Press P during the run to pause your shift.'
     ], {
       fontFamily: 'monospace',
       fontSize: '20px',
