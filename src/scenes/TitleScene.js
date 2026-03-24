@@ -38,6 +38,7 @@ export class TitleScene extends Phaser.Scene {
     this.createButtons();
     this.createInstructionsPanel();
     this.registerInput();
+    this.registerAudioUnlock();
     this.ensureSoundtrack();
   }
 
@@ -218,6 +219,7 @@ export class TitleScene extends Phaser.Scene {
 
   registerInput() {
     const startGame = () => {
+      this.unlockAudio();
       if (this.soundtrack) {
         this.soundtrack.setVolume(GAME_SOUNDTRACK_VOLUME);
       }
@@ -236,7 +238,24 @@ export class TitleScene extends Phaser.Scene {
     });
   }
 
+  registerAudioUnlock() {
+    this.input.once('pointerdown', () => {
+      this.unlockAudio();
+      this.ensureSoundtrack();
+    });
+  }
+
+  unlockAudio() {
+    if (this.sound.locked) {
+      this.sound.unlock();
+    }
+  }
+
   ensureSoundtrack() {
+    if (this.sound.locked) {
+      return;
+    }
+
     if (!this.soundtrack.isPlaying) {
       this.soundtrack.play({ loop: true, volume: TITLE_SOUNDTRACK_VOLUME });
     }

@@ -73,13 +73,18 @@ export class GameScene extends Phaser.Scene {
     this.shelfTimer = 0;
     this.isPausedByMenu = false;
     this.pauseReason = '';
+    this.isMobileDevice = this.shouldUseMobileControls();
 
     this.state = this.createInitialState();
     this.buildWorld();
     this.buildPlayer();
     this.buildUI();
     this.createInput();
+    this.createMobileControls();
     this.configureCamera();
+    this.applyResponsiveLayout();
+    this.registerScaleHandlers();
+    this.registerAudioUnlock();
     this.updateHud();
     this.spawnKid('wanderer');
     this.spawnAccumulator = 4;
@@ -89,12 +94,7 @@ export class GameScene extends Phaser.Scene {
     this.kidPickupSounds = ['kid-book-pickup', ...this.kidLaughSounds];
     this.chaseLaughCooldown = 0;
 
-    const soundtrack = this.sound.get('soundtrack');
-    if (soundtrack?.isPlaying) {
-      soundtrack.setVolume(0.42);
-    } else {
-      this.sound.play('soundtrack', { loop: true, volume: 0.42 });
-    }
+    this.ensureGameplaySoundtrack();
   }
 
   createInitialState() {
@@ -285,22 +285,235 @@ export class GameScene extends Phaser.Scene {
       right: Phaser.Input.Keyboard.KeyCodes.D,
       sprint: Phaser.Input.Keyboard.KeyCodes.SHIFT
     });
+    this.mobileInput = {
+      moveX: 0,
+      moveY: 0,
+      sprint: false,
+      joystickPointerId: null,
+      sprintPointerId: null
+    };
 
     this.input.keyboard.on('keydown-P', () => {
-      if (this.pauseReason === 'levelup') {
-        return;
-      }
-
-      if (this.isPausedByMenu) {
-        this.resumeSimulation();
-      } else {
-        this.pauseSimulation('Paused', 'Press P to continue your shift.');
-      }
+      this.togglePauseMenu();
     });
 
     this.input.keyboard.on('keydown-ONE', () => this.selectUpgrade(0));
     this.input.keyboard.on('keydown-TWO', () => this.selectUpgrade(1));
     this.input.keyboard.on('keydown-THREE', () => this.selectUpgrade(2));
+  }
+
+  shouldUseMobileControls() {
+    const device = this.sys.game.device;
+    return Boolean(device.input.touch && !device.os.desktop);
+  }
+
+  createMobileControls() {
+    if (!this.isMobileDevice) {
+      return;
+    }
+
+    this.mobileControlLayer = this.add.layer().setDepth(120);
+
+    this.joystickBase = this.add.circle(126, WORLD.height - 118, 82, 0x170f0a, 0.28)
+      .setStrokeStyle(4, 0xe6c07a, 0.52)
+      .setScrollFactor(0);
+    this.joystickThumb = this.add.circle(126, WORLD.height - 118, 34, 0xe6c07a, 0.72)
+      .setStrokeStyle(2, 0x2f1c12, 0.9)
+      .setScrollFactor(0);
+    this.joystickZone = this.add.zone(126, WORLD.height - 118, 236, 236)
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: false });
+
+    this.sprintButton = this.add.circle(WORLD.width - 118, WORLD.height - 124, 58, 0x915b2b, 0.72)
+      .setStrokeStyle(4, 0xf1d196, 0.82)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: false });
+    this.sprintLabel = this.add.text(WORLD.width - 118, WORLD.height - 124, 'SPRINT', {
+      fontFamily: 'monospace',
+      fontSize: '22px',
+      fontStyle: 'bold',
+      color: '#fff6df'
+    }).setOrigin(0.5).setScrollFactor(0);
+
+    this.pauseButtonMobile = this.add.circle(WORLD.width - 68, 68, 34, 0x25150d, 0.76)
+      .setStrokeStyle(3, 0xf0cf95, 0.85)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: false });
+    this.pauseLabelMobile = this.add.text(WORLD.width - 68, 68, 'II', {
+      fontFamily: 'monospace',
+      fontSize: '22px',
+      fontStyle: 'bold',
+      color: '#fff4d8'
+    }).setOrigin(0.5).setScrollFactor(0);
+
+    this.mobileControlLayer.add([
+      this.joystickBase,
+      this.joystickThumb,
+      this.sprintButton,
+      this.sprintLabel,
+      this.pauseButtonMobile,
+      this.pauseLabelMobile
+    ]);
+
+    this.joystickZone.on('pointerdown', (pointer) => {
+      if (this.mobileInput.joystickPointerId !== null) {
+        return;
+      }
+
+      this.mobileInput.joystickPointerId = pointer.id;
+      this.updateMobileJoystick(pointer);
+    });
+
+    this.sprintButton.on('pointerdown', (pointer) => {
+      this.mobileInput.sprintPointerId = pointer.id;
+      this.mobileInput.sprint = true;
+      this.refreshMobileControlVisuals();
+    });
+
+    this.pauseButtonMobile.on('pointerdown', () => {
+      this.togglePauseMenu();
+    });
+
+    this.input.on('pointermove', (pointer) => {
+      if (pointer.id === this.mobileInput.joystickPointerId) {
+        this.updateMobileJoystick(pointer);
+      }
+    });
+
+    this.input.on('pointerup', (pointer) => {
+      this.releaseMobilePointer(pointer);
+    });
+
+    this.input.on('pointerupoutside', (pointer) => {
+      this.releaseMobilePointer(pointer);
+    });
+
+    this.layoutMobileControls();
+    this.refreshMobileControlVisuals();
+  }
+
+  releaseMobilePointer(pointer) {
+    if (!this.isMobileDevice) {
+      return;
+    }
+
+    if (pointer.id === this.mobileInput.joystickPointerId) {
+      this.resetMobileJoystick();
+    }
+
+    if (pointer.id === this.mobileInput.sprintPointerId) {
+      this.mobileInput.sprintPointerId = null;
+      this.mobileInput.sprint = false;
+      this.refreshMobileControlVisuals();
+    }
+  }
+
+  updateMobileJoystick(pointer) {
+    const centerX = this.joystickBase.x;
+    const centerY = this.joystickBase.y;
+    const maxRadius = 62;
+    const deltaX = pointer.x - centerX;
+    const deltaY = pointer.y - centerY;
+    const distanceFromCenter = Math.hypot(deltaX, deltaY);
+    const clampedDistance = Math.min(maxRadius, distanceFromCenter || 0);
+    const angle = Math.atan2(deltaY, deltaX);
+    const thumbX = centerX + Math.cos(angle) * clampedDistance;
+    const thumbY = centerY + Math.sin(angle) * clampedDistance;
+
+    this.joystickThumb.setPosition(distanceFromCenter > 0 ? thumbX : centerX, distanceFromCenter > 0 ? thumbY : centerY);
+    this.mobileInput.moveX = Phaser.Math.Clamp(deltaX / maxRadius, -1, 1);
+    this.mobileInput.moveY = Phaser.Math.Clamp(deltaY / maxRadius, -1, 1);
+  }
+
+  resetMobileJoystick() {
+    this.mobileInput.joystickPointerId = null;
+    this.mobileInput.moveX = 0;
+    this.mobileInput.moveY = 0;
+
+    if (this.joystickThumb && this.joystickBase) {
+      this.joystickThumb.setPosition(this.joystickBase.x, this.joystickBase.y);
+    }
+  }
+
+  refreshMobileControlVisuals() {
+    if (!this.isMobileDevice) {
+      return;
+    }
+
+    this.sprintButton.setFillStyle(this.mobileInput.sprint ? 0xd48a41 : 0x915b2b, this.mobileInput.sprint ? 0.92 : 0.72);
+    this.joystickBase.setAlpha(this.mobileInput.joystickPointerId === null ? 0.9 : 1);
+    this.joystickThumb.setAlpha(this.mobileInput.joystickPointerId === null ? 0.8 : 1);
+  }
+
+  layoutMobileControls() {
+    if (!this.isMobileDevice) {
+      return;
+    }
+
+    const bottomInset = 112;
+    this.joystickBase.setPosition(126, WORLD.height - bottomInset);
+    this.joystickThumb.setPosition(126, WORLD.height - bottomInset);
+    this.joystickZone.setPosition(126, WORLD.height - bottomInset);
+    this.sprintButton.setPosition(WORLD.width - 118, WORLD.height - 118);
+    this.sprintLabel.setPosition(WORLD.width - 118, WORLD.height - 118);
+    this.pauseButtonMobile.setPosition(WORLD.width - 68, 68);
+    this.pauseLabelMobile.setPosition(WORLD.width - 68, 68);
+  }
+
+  applyResponsiveLayout() {
+    if (!this.isMobileDevice) {
+      return;
+    }
+
+    this.leftPanel.setScale(1.02, 1.04);
+    this.centerPanel.setScale(1.08, 1.06);
+    this.rightPanel.setScale(1.02, 1.04);
+    this.leftTitle.setFontSize('26px');
+    this.statsText.setFontSize('17px');
+    this.rightStatsText.setFontSize('20px');
+    this.eventText.setFontSize('26px');
+    this.subEventText.setFontSize('15px');
+    this.statusText.setFontSize('20px');
+  }
+
+  registerScaleHandlers() {
+    this.scale.on('resize', () => {
+      this.layoutMobileControls();
+    });
+  }
+
+  registerAudioUnlock() {
+    this.input.once('pointerdown', () => {
+      this.sound.unlock();
+      this.ensureGameplaySoundtrack();
+    });
+  }
+
+  ensureGameplaySoundtrack() {
+    if (this.sound.locked) {
+      return;
+    }
+
+    const soundtrack = this.sound.get('soundtrack');
+    if (soundtrack?.isPlaying) {
+      soundtrack.setVolume(0.42);
+      return;
+    }
+
+    this.sound.play('soundtrack', { loop: true, volume: 0.42 });
+  }
+
+  togglePauseMenu() {
+    if (this.pauseReason === 'levelup') {
+      return;
+    }
+
+    if (this.isPausedByMenu) {
+      this.resumeSimulation();
+    } else {
+      this.pauseSimulation('Paused', 'Press P or tap pause to continue your shift.');
+    }
   }
 
   update(_, deltaMs) {
@@ -339,7 +552,10 @@ export class GameScene extends Phaser.Scene {
     if (this.cursors.up.isDown || this.keys.up.isDown) dy -= 1;
     if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
 
-    const wantsToSprint = (this.cursors.shift?.isDown || this.keys.sprint.isDown) && (dx !== 0 || dy !== 0);
+    dx += this.mobileInput?.moveX ?? 0;
+    dy += this.mobileInput?.moveY ?? 0;
+
+    const wantsToSprint = (this.cursors.shift?.isDown || this.keys.sprint.isDown || this.mobileInput?.sprint) && (dx !== 0 || dy !== 0);
     const canStartSprint = wantsToSprint && this.state.player.stamina > 0 && (this.state.player.staminaRecoveryCooldown <= 0 || this.state.player.isSprinting);
     this.state.player.isSprinting = canStartSprint;
 
@@ -1039,6 +1255,11 @@ export class GameScene extends Phaser.Scene {
       this.sprintSound.stop();
     }
 
+    this.mobileInput.sprint = false;
+    this.mobileInput.sprintPointerId = null;
+    this.resetMobileJoystick();
+    this.refreshMobileControlVisuals();
+
     this.isPausedByMenu = true;
     this.pauseReason = this.pauseReason || 'pause';
     this.pauseOverlay.setVisible(true);
@@ -1047,6 +1268,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   resumeSimulation() {
+    this.mobileInput.sprint = false;
+    this.mobileInput.sprintPointerId = null;
+    this.resetMobileJoystick();
+    this.refreshMobileControlVisuals();
     this.isPausedByMenu = false;
     this.pauseReason = '';
     this.pauseOverlay.setVisible(false);
@@ -1069,6 +1294,11 @@ export class GameScene extends Phaser.Scene {
     if (this.sprintSound?.isPlaying) {
       this.sprintSound.stop();
     }
+
+    this.mobileInput.sprint = false;
+    this.mobileInput.sprintPointerId = null;
+    this.resetMobileJoystick();
+    this.refreshMobileControlVisuals();
 
     this.scene.start('end', {
       won,
