@@ -14,17 +14,27 @@ export class EndScene extends Phaser.Scene {
 
   create(data) {
     const won = Boolean(data?.won);
-    this.cameras.main.setBackgroundColor(won ? '#d3ead7' : '#f5d5cf');
+    this.cameras.main.setBackgroundColor(won ? '#d7f4dc' : '#f5d5cf');
 
     if (!won) {
       this.sound.play('game-loss', { volume: 0.4 });
     }
 
-    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 980, 560, 0xfff8ec, 0.97).setStrokeStyle(5, 0x6d4c41);
-    this.add.text(WORLD.width / 2, 170, won ? 'Order Restored' : 'Library Overwhelmed', {
-      fontSize: '50px',
-      color: won ? '#2d6a4f' : '#9d0208',
+    if (won) {
+      this.createCelebrationBackdrop();
+    }
+
+    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 980, 560, 0xfff8ec, 0.97).setStrokeStyle(5, won ? 0x2d6a4f : 0x6d4c41);
+    this.add.text(WORLD.width / 2, 156, won ? 'You win' : 'Library Overwhelmed', {
+      fontSize: '54px',
+      color: won ? '#1b5e20' : '#9d0208',
       fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    this.add.text(WORLD.width / 2, 212, won ? 'The librarian kept the chaos under control for 10 minutes.' : 'Chaos reached 100% before the shift ended.', {
+      fontSize: '24px',
+      color: won ? '#2d6a4f' : '#7f1d1d',
+      align: 'center'
     }).setOrigin(0.5);
 
     const stats = [
@@ -36,7 +46,7 @@ export class EndScene extends Phaser.Scene {
       `Final Chaos: ${Math.round(data.chaos ?? 0)}%`
     ];
 
-    this.add.text(WORLD.width / 2, 330, stats, {
+    this.add.text(WORLD.width / 2, 344, stats, {
       fontSize: '28px',
       color: '#463526',
       align: 'center',
@@ -47,14 +57,14 @@ export class EndScene extends Phaser.Scene {
       ? `Upgrades: ${data.upgrades.join(', ')}`
       : 'Upgrades: None';
 
-    this.add.text(WORLD.width / 2, 500, upgrades, {
+    this.add.text(WORLD.width / 2, 516, upgrades, {
       fontSize: '22px',
       color: '#6a523d',
       align: 'center',
       wordWrap: { width: 860 }
     }).setOrigin(0.5);
 
-    this.add.text(WORLD.width / 2, 615, 'Press SPACE, SHIFT, ENTER, or click to play again', {
+    this.add.text(WORLD.width / 2, 615, 'Press SPACE, SHIFT, ENTER, or tap to play again', {
       fontSize: '24px',
       color: '#7f5539'
     }).setOrigin(0.5);
@@ -64,5 +74,37 @@ export class EndScene extends Phaser.Scene {
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT).once('down', restartGame);
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER).once('down', restartGame);
     this.input.once('pointerdown', restartGame);
+  }
+
+  createCelebrationBackdrop() {
+    const colors = [0xf4c542, 0xff7b72, 0x70d6ff, 0x7ae582, 0xffa94d];
+
+    for (let i = 0; i < 28; i += 1) {
+      const confetti = this.add.rectangle(
+        Phaser.Math.Between(40, WORLD.width - 40),
+        Phaser.Math.Between(-220, -20),
+        Phaser.Math.Between(10, 18),
+        Phaser.Math.Between(18, 34),
+        colors[i % colors.length],
+        0.9
+      ).setAngle(Phaser.Math.Between(-25, 25));
+
+      this.tweens.add({
+        targets: confetti,
+        y: WORLD.height + 120,
+        x: confetti.x + Phaser.Math.Between(-120, 120),
+        angle: confetti.angle + Phaser.Math.Between(120, 300),
+        alpha: { from: 1, to: 0.25 },
+        duration: Phaser.Math.Between(2200, 3600),
+        ease: 'Sine.in',
+        repeat: -1,
+        delay: Phaser.Math.Between(0, 1200),
+        onRepeat: () => {
+          confetti.setPosition(Phaser.Math.Between(40, WORLD.width - 40), Phaser.Math.Between(-220, -20));
+          confetti.setAlpha(1);
+          confetti.setAngle(Phaser.Math.Between(-25, 25));
+        }
+      });
+    }
   }
 }

@@ -32,6 +32,7 @@ export class TitleScene extends Phaser.Scene {
     this.soundtrack.setVolume(TITLE_SOUNDTRACK_VOLUME);
     this.menuSelectSound = this.sound.add('menu-select', { volume: 0.35 });
     this.instructionsVisible = false;
+    this.isMobileDevice = this.shouldUseMobileControls();
 
     this.drawBackdrop();
     this.drawHeroText();
@@ -103,7 +104,7 @@ export class TitleScene extends Phaser.Scene {
       strokeThickness: 5
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
 
-    this.add.text(WORLD.width / 2, 308, 'Intercept rowdy kids, rescue scattered books, and survive a full thirty-minute shift.', {
+    this.add.text(WORLD.width / 2, 308, 'Intercept rowdy kids, rescue scattered books, and survive a full ten-minute shift.', {
       fontFamily: 'monospace',
       fontSize: '20px',
       color: '#f9ddb0',
@@ -153,15 +154,7 @@ export class TitleScene extends Phaser.Scene {
       color: '#2d1a10'
     }).setOrigin(0.5);
 
-    const body = this.add.text(WORLD.width / 2, 372, [
-      '1. Move with WASD or the arrow keys.',
-      '2. Hold Shift to sprint until your stamina bar runs out.',
-      '3. Stamina recovers a few seconds after you stop sprinting.',
-      '4. Books are picked up automatically when you walk close to them.',
-      '5. Stand near the correct shelf to file matching books back in place.',
-      '6. Catch kids while they are carrying books to intercept them.',
-      '7. Press P during the run to pause your shift.'
-    ], {
+    const body = this.add.text(WORLD.width / 2, 372, this.getInstructionsCopy(), {
       fontFamily: 'monospace',
       fontSize: '20px',
       color: '#4f3b2b',
@@ -208,6 +201,35 @@ export class TitleScene extends Phaser.Scene {
     button.on('pointerup', onPress);
 
     return [button, text];
+  }
+
+  getInstructionsCopy() {
+    if (this.isMobileDevice) {
+      return [
+        '1. Move with the virtual control.',
+        '2. Hold the sprint button until your stamina bar runs out.',
+        '3. Stamina recovers a few seconds after you stop sprinting.',
+        '4. Books are picked up automatically when you move close to them.',
+        '5. Stand near the correct shelf to file matching books back in place.',
+        '6. Catch kids while they are carrying books to intercept them.',
+        '7. Tap the pause button during the run to pause your shift.'
+      ];
+    }
+
+    return [
+      '1. Move with WASD or the arrow keys.',
+      '2. Hold Shift to sprint until your stamina bar runs out.',
+      '3. Stamina recovers a few seconds after you stop sprinting.',
+      '4. Books are picked up automatically when you walk close to them.',
+      '5. Stand near the correct shelf to file matching books back in place.',
+      '6. Catch kids while they are carrying books to intercept them.',
+      '7. Press P during the run to pause your shift.'
+    ];
+  }
+
+  shouldUseMobileControls() {
+    const device = this.sys.game.device;
+    return Boolean(device.input.touch && !device.os.desktop);
   }
 
   registerInput() {

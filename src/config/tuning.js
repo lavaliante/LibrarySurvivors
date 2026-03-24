@@ -6,7 +6,7 @@ export const WORLD = {
 };
 
 export const RUN = {
-  durationSeconds: 1800,
+  durationSeconds: 600,
   baseChaosPerSecond: 0.05,
   floorBookChaosWeight: 0.22,
   agedBookChaosWeight: 0.0025,
