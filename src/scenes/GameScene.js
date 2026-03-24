@@ -74,7 +74,6 @@ export class GameScene extends Phaser.Scene {
     this.isPausedByMenu = false;
     this.pauseReason = '';
     this.isMobileDevice = this.shouldUseMobileControls();
-    this.debugFloorBookEvents = [];
 
     this.state = this.createInitialState();
     this.buildWorld();
@@ -240,14 +239,6 @@ export class GameScene extends Phaser.Scene {
     this.xpBar = this.add.rectangle(24, 86, 0, 8, 0x62c370).setOrigin(0, 0.5).setScrollFactor(0);
     this.staminaBarBg = this.add.rectangle(24, 102, 188, 8, 0x120c08).setOrigin(0, 0.5).setScrollFactor(0);
     this.staminaBar = this.add.rectangle(24, 102, 188, 8, 0x5cc8ff).setOrigin(0, 0.5).setScrollFactor(0);
-
-    this.debugFloorText = this.add.text(24, WORLD.height - 72, '', {
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      color: '#ffd6a5',
-      backgroundColor: '#1f120c',
-      padding: { x: 8, y: 4 }
-    }).setScrollFactor(0).setDepth(140).setVisible(false);
 
     this.pauseOverlay = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x0c0806, 0.7).setVisible(false).setScrollFactor(0);
     this.pauseTitle = this.add.text(WORLD.width / 2, 168, '', {
@@ -960,9 +951,26 @@ export class GameScene extends Phaser.Scene {
     const progress = this.state.run.elapsed / RUN.durationSeconds;
     const roll = this.mathRng.realInRange(0, 1);
 
-    if (progress < 0.2 || roll < 0.55) return 'wanderer';
-    if (progress < 0.55 || roll < 0.82) return 'runner';
-    return 'stackToppler';
+    let preferredArchetype = 'stackToppler';
+    if (progress < 0.2 || roll < 0.55) preferredArchetype = 'wanderer';
+    else if (progress < 0.55 || roll < 0.82) preferredArchetype = 'runner';
+
+    if (this.state.kids.length < 5) {
+      const archetypeCounts = Object.keys(KID_ARCHETYPES).reduce((counts, key) => {
+        counts[key] = this.state.kids.filter((kid) => kid.archetype === key).length;
+        return counts;
+      }, {});
+      const lowestCount = Math.min(...Object.values(archetypeCounts));
+      const leastUsedArchetypes = Object.keys(archetypeCounts).filter((key) => archetypeCounts[key] === lowestCount);
+
+      if (leastUsedArchetypes.includes(preferredArchetype)) {
+        return preferredArchetype;
+      }
+
+      return Phaser.Utils.Array.GetRandom(leastUsedArchetypes);
+    }
+
+    return preferredArchetype;
   }
 
   createShelf(def) {
@@ -1106,25 +1114,6 @@ export class GameScene extends Phaser.Scene {
       y: clamp(targetShelf.y + Math.sin(angle) * radius, this.layout.bounds.y, this.layout.bounds.y + this.layout.bounds.height)
     };
   }
-
-  recordFloorBookEvent(source, book, position, extra = {}) {
-    const event = {
-      time: Math.round(this.state.run.elapsed),
-      source,
-      book: book?.label ?? 'Unknown',
-      x: Math.round(position.x),
-      y: Math.round(position.y),
-      ...extra
-    };
-
-    this.debugFloorBookEvents.unshift(event);
-    this.debugFloorBookEvents = this.debugFloorBookEvents.slice(0, 3);
-
-    const summary = `${source}: ${event.book} @ ${event.x},${event.y}` + (event.kidId ? ` by ${event.kidId}` : '');
-    this.debugFloorText?.setText(`Floor debug\n${summary}`).setVisible(true);
-    console.info('[FloorBookDebug]', event);
-  }
-
   dropKidBooks(kid) {
     for (const book of kid.carrying) {
       const scatter = this.findOpenFloorPoint(kid.x, kid.y, 38, 16, 26);
@@ -1135,7 +1124,6 @@ export class GameScene extends Phaser.Scene {
       book.floorAge = 0;
       book.shadow.setPosition(scatter.x, scatter.y + 7).setVisible(true);
       book.sprite.setPosition(scatter.x, scatter.y).setVisible(true);
-      this.recordFloorBookEvent('kid-drop', book, scatter, { kidId: kid.id });
     }
 
     if (kid.carrying.length > 0) {

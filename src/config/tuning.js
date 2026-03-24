@@ -86,9 +86,9 @@ export const UPGRADE_POOL = [
   {
     id: 'extendable-grabber',
     label: 'Extendable Grabber',
-    description: '+8 pickup radius',
+    description: '+5 pickup radius',
     apply: (state) => {
-      state.player.pickupRadius += 8;
+      state.player.pickupRadius += 5;
     }
   },
   {
@@ -110,25 +110,25 @@ export const UPGRADE_POOL = [
   {
     id: 'shelf-whisperer',
     label: 'Shelf Whisperer',
-    description: '+8 shelving radius',
+    description: '+5 shelving radius',
     apply: (state) => {
-      state.player.shelfRadius += 8;
+      state.player.shelfRadius += 5;
     }
   },
   {
     id: 'stern-glare',
     label: 'Stern Glare',
-    description: '+18 kid repulsion radius',
+    description: '+5% kid repulsion radius',
     apply: (state) => {
-      state.player.repelRadius += 18;
+      state.player.repelRadius *= 1.05;
     }
   },
   {
     id: 'quiet-zone-policy',
     label: 'Quiet Zone Policy',
-    description: '-3% chaos gain',
+    description: '-2% chaos gain',
     apply: (state) => {
-      state.run.chaosMultiplier *= 0.97;
+      state.run.chaosMultiplier *= 0.98;
     }
   },
   {
@@ -144,7 +144,7 @@ export const UPGRADE_POOL = [
     label: 'Teacher Voice',
     description: 'Fleeing kids stay panicked slightly longer',
     apply: (state) => {
-      state.player.repelDuration += 0.15;
+      state.player.repelDuration += 0.1;
     }
   }
 ];
