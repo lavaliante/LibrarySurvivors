@@ -371,7 +371,7 @@ export class GameScene extends Phaser.Scene {
           break;
         case 'movingToShelf':
           this.moveKidTowards(kid, kid.targetShelf, archetype.speed, delta);
-          if (kid.targetShelf && distance(kid, kid.targetShelf) < 18) {
+          if (this.isTouchingShelf(kid, kid.targetShelf, 10)) {
             kid.state = 'looting';
             kid.actionTimer = archetype.shelfTime;
           }
@@ -418,7 +418,12 @@ export class GameScene extends Phaser.Scene {
       if (this.isBlocked(kid, 28, 44, true)) {
         kid.x = previous.x;
         kid.y = previous.y;
-        if (kid.state === 'movingToShelf') kid.state = 'idle';
+        if (kid.state === 'movingToShelf' && this.isTouchingShelf(previous, kid.targetShelf, 12)) {
+          kid.state = 'looting';
+          kid.actionTimer = archetype.shelfTime;
+        } else if (kid.state === 'movingToShelf') {
+          kid.state = 'idle';
+        }
       }
 
       this.updateKidSprite(kid, previous);
@@ -660,6 +665,14 @@ export class GameScene extends Phaser.Scene {
     this.setStatus(KID_ARCHETYPES[archetype].label + ' entered the library');
   }
 
+  isTouchingShelf(actor, shelf, padding = 0) {
+    if (!actor || !shelf) {
+      return false;
+    }
+
+    return Math.abs(actor.x - shelf.x) <= shelf.width / 2 + padding
+      && Math.abs(actor.y - shelf.y) <= shelf.height / 2 + padding;
+  }
   assignKidTargetShelf(kid) {
     const candidates = this.state.shelves
       .filter((shelf) => shelf.shelvedCount > 0)
@@ -967,6 +980,7 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
 
 
 
