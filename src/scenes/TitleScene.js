@@ -2,12 +2,12 @@ import Phaser from 'phaser';
 import { WORLD } from '../config/tuning.js';
 
 const BACKGROUND_IMAGES = [
-  ['library-bg-1', 'images/library1.jpg'],
-  ['library-bg-2', 'images/library2.png'],
-  ['library-bg-3', 'images/library3.png'],
-  ['library-bg-4', 'images/library4.png'],
-  ['library-bg-5', 'images/library5.png'],
-  ['library-bg-6', 'images/library6.png']
+  { key: 'library-bg-1', path: 'images/library1.jpg', lift: 0.0 },
+  { key: 'library-bg-2', path: 'images/library2.png', lift: 0.03 },
+  { key: 'library-bg-3', path: 'images/library3.png', lift: 0.045 },
+  { key: 'library-bg-4', path: 'images/library4.png', lift: 0.06 },
+  { key: 'library-bg-5', path: 'images/library5.png', lift: 0.08 },
+  { key: 'library-bg-6', path: 'images/library6.png', lift: 0.095 }
 ];
 
 const DEPTHS = {
@@ -25,9 +25,9 @@ export class TitleScene extends Phaser.Scene {
   preload() {
     this.load.audio('soundtrack', 'audio/whistling_in_the_wind.mp3');
 
-    for (const [key, path] of BACKGROUND_IMAGES) {
-      if (!this.textures.exists(key)) {
-        this.load.image(key, path);
+    for (const background of BACKGROUND_IMAGES) {
+      if (!this.textures.exists(background.key)) {
+        this.load.image(background.key, background.path);
       }
     }
   }
@@ -47,42 +47,72 @@ export class TitleScene extends Phaser.Scene {
   }
 
   drawBackdrop() {
-    this.backgroundImages = BACKGROUND_IMAGES.map(([key], index) => {
-      return this.add.image(WORLD.width / 2, WORLD.height / 2, key)
+    this.backgroundImages = [];
+    this.backgroundLifts = [];
+
+    BACKGROUND_IMAGES.forEach((background, index) => {
+      const image = this.add.image(WORLD.width / 2, WORLD.height / 2, background.key)
         .setDisplaySize(WORLD.width, WORLD.height)
         .setAlpha(index === 0 ? 1 : 0)
         .setDepth(DEPTHS.background);
+
+      const lift = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0xfff1d0, background.lift)
+        .setAlpha(index === 0 ? background.lift : 0)
+        .setDepth(DEPTHS.background + 1);
+
+      this.backgroundImages.push(image);
+      this.backgroundLifts.push(lift);
     });
 
-    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x100a07, 0.26)
+    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x120b08, 0.18)
       .setDepth(DEPTHS.overlay);
-    this.add.rectangle(WORLD.width / 2, WORLD.height - 56, WORLD.width, 112, 0x140d09, 0.58)
+    this.add.rectangle(WORLD.width / 2, WORLD.height - 56, WORLD.width, 112, 0x140d09, 0.48)
       .setDepth(DEPTHS.overlay);
   }
 
   startBackdropCycle() {
     this.time.addEvent({
-      delay: 1800,
+      delay: 950,
       loop: true,
       callback: () => {
         const previousImage = this.backgroundImages[this.backgroundIndex];
-        this.backgroundIndex = (this.backgroundIndex + 1) % this.backgroundImages.length;
+        const previousLift = this.backgroundLifts[this.backgroundIndex];
+
+        if (this.backgroundIndex === this.backgroundImages.length - 1) {
+          this.backgroundDirection = -1;
+        } else if (this.backgroundIndex === 0) {
+          this.backgroundDirection = 1;
+        }
+
+        this.backgroundIndex += this.backgroundDirection;
+
         const nextImage = this.backgroundImages[this.backgroundIndex];
+        const nextLift = this.backgroundLifts[this.backgroundIndex];
+        const nextLiftAlpha = BACKGROUND_IMAGES[this.backgroundIndex].lift;
 
         previousImage.setDepth(DEPTHS.background);
         nextImage.setDepth(DEPTHS.background + 1);
+        previousLift.setDepth(DEPTHS.background + 1);
+        nextLift.setDepth(DEPTHS.background + 2);
 
         this.tweens.add({
-          targets: previousImage,
+          targets: [previousImage, previousLift],
           alpha: 0,
-          duration: 900,
+          duration: 420,
           ease: 'Sine.easeInOut'
         });
 
         this.tweens.add({
           targets: nextImage,
           alpha: 1,
-          duration: 900,
+          duration: 420,
+          ease: 'Sine.easeInOut'
+        });
+
+        this.tweens.add({
+          targets: nextLift,
+          alpha: nextLiftAlpha,
+          duration: 420,
           ease: 'Sine.easeInOut'
         });
       }
@@ -90,13 +120,6 @@ export class TitleScene extends Phaser.Scene {
   }
 
   drawHeroText() {
-    this.add.rectangle(WORLD.width / 2, 132, 760, 136, 0x120c09, 0.64)
-      .setStrokeStyle(3, 0xe6c173, 0.82)
-      .setDepth(DEPTHS.ui);
-    this.add.rectangle(WORLD.width / 2, 304, 860, 152, 0x120c09, 0.58)
-      .setStrokeStyle(2, 0xe6c173, 0.55)
-      .setDepth(DEPTHS.ui);
-
     const titleShadow = this.add.text(WORLD.width / 2 + 6, 118, 'LIBRARY\nSURVIVORS', {
       fontFamily: 'monospace',
       fontSize: '46px',
@@ -126,34 +149,42 @@ export class TitleScene extends Phaser.Scene {
       }
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
 
-    this.add.text(WORLD.width / 2, 258, 'Restore order before the whole library turns into 16-bit chaos.', {
+    this.add.text(WORLD.width / 2, 252, 'Restore order before the whole library turns into 16-bit chaos.', {
       fontFamily: 'monospace',
       fontSize: '24px',
       fontStyle: 'bold',
-      color: '#fff0c8',
-      align: 'center'
+      color: '#fff2d0',
+      align: 'center',
+      stroke: '#2b1a11',
+      strokeThickness: 5
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
 
-    this.add.text(WORLD.width / 2, 314, 'Intercept rowdy kids, rescue scattered books, and survive a full thirty-minute shift.', {
+    this.add.text(WORLD.width / 2, 308, 'Intercept rowdy kids, rescue scattered books, and survive a full thirty-minute shift.', {
       fontFamily: 'monospace',
       fontSize: '20px',
       color: '#f9ddb0',
       align: 'center',
-      wordWrap: { width: 760 }
+      wordWrap: { width: 760 },
+      stroke: '#2b1a11',
+      strokeThickness: 4
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
 
-    this.musicHint = this.add.text(WORLD.width / 2, 382, 'Click Start or Instructions to begin the soundtrack.', {
+    this.musicHint = this.add.text(WORLD.width / 2, 378, 'Click Start or Instructions to begin the soundtrack.', {
       fontFamily: 'monospace',
       fontSize: '17px',
       color: '#f2cf8f',
-      align: 'center'
+      align: 'center',
+      stroke: '#2b1a11',
+      strokeThickness: 3
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
 
-    this.add.text(WORLD.width / 2, 410, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
+    this.add.text(WORLD.width / 2, 406, 'Soundtrack copyright Ruth Lachs (rutilachs@gmail.com)', {
       fontFamily: 'monospace',
       fontSize: '15px',
       color: '#ebc17d',
-      align: 'center'
+      align: 'center',
+      stroke: '#2b1a11',
+      strokeThickness: 3
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
   }
 
@@ -172,7 +203,9 @@ export class TitleScene extends Phaser.Scene {
       fontFamily: 'monospace',
       fontSize: '18px',
       fontStyle: 'bold',
-      color: '#f6d89a'
+      color: '#f6d89a',
+      stroke: '#2b1a11',
+      strokeThickness: 3
     }).setOrigin(0.5).setDepth(DEPTHS.ui);
   }
 
@@ -216,7 +249,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   buildButton(x, y, width, height, label, fillColor, strokeColor, onPress, depth = DEPTHS.ui) {
-    const button = this.add.rectangle(x, y, width, height, fillColor, 0.82)
+    const button = this.add.rectangle(x, y, width, height, fillColor, 0.8)
       .setStrokeStyle(3, strokeColor)
       .setInteractive({ useHandCursor: true })
       .setDepth(depth);
@@ -235,7 +268,7 @@ export class TitleScene extends Phaser.Scene {
     });
 
     button.on('pointerout', () => {
-      button.setFillStyle(fillColor, 0.82);
+      button.setFillStyle(fillColor, 0.8);
       button.setScale(1);
       text.setScale(1);
     });
@@ -276,3 +309,4 @@ export class TitleScene extends Phaser.Scene {
     this.instructionsContainer.setVisible(this.instructionsVisible);
   }
 }
+
