@@ -33,6 +33,10 @@ export class GameScene extends Phaser.Scene {
     if (!this.textures.exists('librarian-walk-2')) {
       this.load.image('librarian-walk-2', 'images/librarian2.png');
     }
+
+    if (!this.textures.exists('kids-sheet')) {
+      this.load.spritesheet('kids-sheet', 'images/kids.png', { frameWidth: 135, frameHeight: 184, endFrame: 9 });
+    }
   }
 
   create() {
@@ -417,10 +421,12 @@ export class GameScene extends Phaser.Scene {
         if (kid.state === 'movingToShelf') kid.state = 'idle';
       }
 
+      this.updateKidSprite(kid, previous);
+
       kid.container.x = kid.x;
       kid.container.y = kid.y;
       kid.label.x = kid.x;
-      kid.label.y = kid.y - 24;
+      kid.label.y = kid.y - 26;
     }
   }
 
@@ -634,19 +640,24 @@ export class GameScene extends Phaser.Scene {
       actionTimer: 0,
       dropTarget: null,
       carrying: [],
-      fleeTimer: 0
+      fleeTimer: 0,
+      appearanceIndex: this.mathRng.integerInRange(0, 4),
+      facing: this.mathRng.pick(['left', 'right'])
     };
 
     const sprite = this.add.container(kid.x, kid.y);
     const shadow = this.add.ellipse(0, 11, 20, 10, 0x000000, 0.18);
-    const body = this.add.rectangle(0, 0, 18, 28, KID_ARCHETYPES[archetype].tint).setStrokeStyle(2, 0x4e2f20);
-    const head = this.add.circle(0, -12, 6, 0xffd7b5).setStrokeStyle(1, 0x8f5c3e);
-    const carriedIndicator = this.add.rectangle(0, -22, 12, 16, 0xffffff).setStrokeStyle(1, 0x3a261a).setVisible(false);
-    sprite.add([shadow, body, head, carriedIndicator]);
+    const kidSprite = this.add.sprite(0, 14, 'kids-sheet', kid.appearanceIndex + 5)
+      .setOrigin(0.5, 1)
+      .setScale(0.18)
+      .setFlipX(kid.facing === 'left');
+    const carriedIndicator = this.add.rectangle(0, -20, 12, 16, 0xffffff).setStrokeStyle(1, 0x3a261a).setVisible(false);
+    sprite.add([shadow, kidSprite, carriedIndicator]);
 
     kid.container = sprite;
+    kid.sprite = kidSprite;
     kid.carriedIndicator = carriedIndicator;
-    kid.label = this.add.text(kid.x, kid.y - 24, '', {
+    kid.label = this.add.text(kid.x, kid.y - 26, '', {
       fontSize: '12px',
       color: '#fff4dd',
       backgroundColor: '#2a1b12',
@@ -656,6 +667,7 @@ export class GameScene extends Phaser.Scene {
     this.state.kids.push(kid);
     this.setStatus(KID_ARCHETYPES[archetype].label + ' entered the library');
   }
+
   assignKidTargetShelf(kid) {
     const candidates = this.state.shelves
       .filter((shelf) => shelf.shelvedCount > 0)
@@ -818,6 +830,21 @@ export class GameScene extends Phaser.Scene {
     kid.label.setVisible(kid.carrying.length > 0);
   }
 
+  updateKidSprite(kid, previous) {
+    const movedX = kid.x - previous.x;
+    const movedY = kid.y - previous.y;
+    const isMoving = Math.abs(movedX) > 0.01 || Math.abs(movedY) > 0.01;
+
+    if (movedX < -0.01) {
+      kid.facing = 'left';
+    } else if (movedX > 0.01) {
+      kid.facing = 'right';
+    }
+
+    kid.sprite.setFlipX(kid.facing === 'left');
+    kid.sprite.setFrame(kid.appearanceIndex + (isMoving ? 0 : 5));
+  }
+
   showLevelUp() {
     this.pauseSimulation('Level Up', 'Choose an upgrade with 1, 2, or 3.');
     this.pauseReason = 'levelup';
@@ -907,6 +934,7 @@ export class GameScene extends Phaser.Scene {
     this.statusText.setText(message);
   }
 }
+
 
 
 
