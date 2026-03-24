@@ -36,7 +36,7 @@ export function createLibraryLayout() {
     ],
     zones: [],
     shelves,
-    playerSpawn: { x: worldWidth / 2, y: topOffset + 560 },
+    playerSpawn: { x: 1260, y: topOffset + 668 },
     kidSpawns: [
       { x: 110, y: topOffset + 150 },
       { x: worldWidth - 110, y: topOffset + 150 },
@@ -66,3 +66,4 @@ function shelf(x, y, width, height, category, slots) {
     totalSlots: slots
   };
 }
+
