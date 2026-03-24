@@ -136,7 +136,6 @@ export class TitleScene extends Phaser.Scene {
     this.buildButton(WORLD.width / 2, 582, 360, 62, 'INSTRUCTIONS', 0x5a3a25, 0xf0c98e, () => {
       this.toggleInstructions();
     });
-
   }
 
   createInstructionsPanel() {
@@ -147,27 +146,27 @@ export class TitleScene extends Phaser.Scene {
     const panel = this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 900, 450, 0xfff4df, 0.98)
       .setStrokeStyle(5, 0x4f3423);
 
-    const title = this.add.text(WORLD.width / 2, 190, 'HOW TO PLAY', {
+    const title = this.add.text(WORLD.width / 2, 180, 'How to play', {
       fontFamily: 'monospace',
       fontSize: '34px',
       fontStyle: 'bold',
       color: '#2d1a10'
     }).setOrigin(0.5);
 
-    const body = this.add.text(WORLD.width / 2, 340, [
-      'MOVE WITH WASD OR THE ARROW KEYS.',
-      'HOLD SHIFT TO SPRINT UNTIL YOUR STAMINA BAR RUNS OUT.',
-      'STAMINA RECOVERS A FEW SECONDS AFTER YOU STOP SPRINTING.',
-      'BOOKS ARE PICKED UP AUTOMATICALLY WHEN YOU WALK CLOSE TO THEM.',
-      'STAND NEAR THE CORRECT SHELF TO FILE MATCHING BOOKS BACK IN PLACE.',
-      'CATCH KIDS WHILE THEY ARE CARRYING BOOKS TO INTERCEPT THEM.',
-      'PRESS P DURING THE RUN TO PAUSE YOUR SHIFT.'
+    const body = this.add.text(WORLD.width / 2, 352, [
+      '- Move with WASD or the arrow keys.',
+      '- Hold Shift to sprint until your stamina bar runs out.',
+      '- Stamina recovers a few seconds after you stop sprinting.',
+      '- Books are picked up automatically when you walk close to them.',
+      '- Stand near the correct shelf to file matching books back in place.',
+      '- Catch kids while they are carrying books to intercept them.',
+      '- Press P during the run to pause your shift.'
     ], {
       fontFamily: 'monospace',
       fontSize: '20px',
       color: '#4f3b2b',
-      align: 'center',
-      lineSpacing: 14,
+      align: 'left',
+      lineSpacing: 16,
       wordWrap: { width: 720 }
     }).setOrigin(0.5);
 
@@ -236,10 +235,11 @@ export class TitleScene extends Phaser.Scene {
   registerAudioUnlock() {
     const unlockAndStart = async () => {
       await this.unlockAudio();
-      this.ensureSoundtrack();
+      this.tryStartTitleAudio();
     };
 
     this.input.once('pointerdown', unlockAndStart);
+    this.sound.once('unlocked', () => this.tryStartTitleAudio());
 
     const canvas = this.game.canvas;
     if (canvas) {
@@ -255,19 +255,11 @@ export class TitleScene extends Phaser.Scene {
   }
 
   async unlockAudio() {
-    if (this.sound.context?.state === 'suspended') {
-      try {
-        await this.sound.context.resume();
-      } catch (error) {
-      }
-    }
-
     if (this.sound.locked) {
       this.sound.unlock();
     }
 
     if (this.sound.context?.state === 'suspended') {
-      await new Promise((resolve) => this.time.delayedCall(50, resolve));
       try {
         await this.sound.context.resume();
       } catch (error) {
@@ -275,9 +267,22 @@ export class TitleScene extends Phaser.Scene {
     }
   }
 
+  tryStartTitleAudio() {
+    if (this.sound.locked || this.sound.context?.state === 'suspended') {
+      return false;
+    }
+
+    this.ensureSoundtrack();
+    return this.soundtrack?.isPlaying ?? false;
+  }
+
   ensureSoundtrack() {
     if (this.sound.locked || this.sound.context?.state === 'suspended') {
       return;
+    }
+
+    if (!this.soundtrack) {
+      this.soundtrack = this.sound.get('soundtrack') ?? this.sound.add('soundtrack', { loop: true, volume: TITLE_SOUNDTRACK_VOLUME });
     }
 
     if (!this.soundtrack.isPlaying) {
@@ -304,4 +309,3 @@ export class TitleScene extends Phaser.Scene {
     this.instructionsContainer.setVisible(this.instructionsVisible);
   }
 }
-
