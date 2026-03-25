@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { WORLD } from '../config/tuning.js';
 
+const LOSE_VIDEO = { key: 'library-burning-video', path: 'images/library_burning.mp4' };
+
 export class EndScene extends Phaser.Scene {
   constructor() {
     super('end');
@@ -10,13 +12,18 @@ export class EndScene extends Phaser.Scene {
     if (!this.cache.audio.exists('game-loss')) {
       this.load.audio('game-loss', 'audio/public_uh_oh.mp3');
     }
+
+    if (!this.cache.video.exists(LOSE_VIDEO.key)) {
+      this.load.video(LOSE_VIDEO.key, LOSE_VIDEO.path, 'loadeddata', false, true);
+    }
   }
 
   create(data) {
     const won = Boolean(data?.won);
-    this.cameras.main.setBackgroundColor(won ? '#d7f4dc' : '#f5d5cf');
+    this.cameras.main.setBackgroundColor(won ? '#d7f4dc' : '#120604');
 
     if (!won) {
+      this.createLossBackdrop();
       this.sound.play('game-loss', { volume: 0.4 });
     }
 
@@ -24,7 +31,8 @@ export class EndScene extends Phaser.Scene {
       this.createCelebrationBackdrop();
     }
 
-    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 980, 560, 0xfff8ec, 0.97).setStrokeStyle(5, won ? 0x2d6a4f : 0x6d4c41);
+    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, 980, 560, won ? 0xfff8ec : 0x2a120d, won ? 0.97 : 0.88)
+      .setStrokeStyle(5, won ? 0x2d6a4f : 0xb85c38);
     this.add.text(WORLD.width / 2, 156, won ? 'You win' : 'Library Overwhelmed', {
       fontSize: '54px',
       color: won ? '#1b5e20' : '#9d0208',
@@ -48,7 +56,7 @@ export class EndScene extends Phaser.Scene {
 
     this.add.text(WORLD.width / 2, 344, stats, {
       fontSize: '28px',
-      color: '#463526',
+      color: won ? '#463526' : '#f7d8c5',
       align: 'center',
       lineSpacing: 12
     }).setOrigin(0.5);
@@ -59,14 +67,14 @@ export class EndScene extends Phaser.Scene {
 
     this.add.text(WORLD.width / 2, 516, upgrades, {
       fontSize: '22px',
-      color: '#6a523d',
+      color: won ? '#6a523d' : '#f0c2aa',
       align: 'center',
       wordWrap: { width: 860 }
     }).setOrigin(0.5);
 
     this.add.text(WORLD.width / 2, 615, 'Press SPACE, SHIFT, ENTER, or tap to play again', {
       fontSize: '24px',
-      color: '#7f5539'
+      color: won ? '#7f5539' : '#ffd7ba'
     }).setOrigin(0.5);
 
     const restartGame = () => this.scene.start('game');
@@ -74,6 +82,34 @@ export class EndScene extends Phaser.Scene {
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT).once('down', restartGame);
     this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER).once('down', restartGame);
     this.input.once('pointerdown', restartGame);
+  }
+
+  createLossBackdrop() {
+    this.backgroundVideo = this.add.video(WORLD.width / 2, WORLD.height / 2, LOSE_VIDEO.key)
+      .setOrigin(0.5)
+      .setAlpha(0.95);
+    this.backgroundVideo.setMute(true);
+    this.backgroundVideo.on('created', () => this.fitBackdropVideo());
+    this.backgroundVideo.play(true);
+    this.fitBackdropVideo();
+
+    this.add.rectangle(WORLD.width / 2, WORLD.height / 2, WORLD.width, WORLD.height, 0x190806, 0.38);
+  }
+
+  fitBackdropVideo() {
+    const source = this.backgroundVideo?.video;
+    const sourceWidth = source?.videoWidth ?? source?.width ?? 0;
+    const sourceHeight = source?.videoHeight ?? source?.height ?? 0;
+
+    if (!sourceWidth || !sourceHeight) {
+      this.time.delayedCall(120, () => this.fitBackdropVideo());
+      return;
+    }
+
+    const scale = Math.max(WORLD.width / sourceWidth, WORLD.height / sourceHeight);
+    this.backgroundVideo
+      .setPosition(WORLD.width / 2, WORLD.height / 2)
+      .setScale(scale);
   }
 
   createCelebrationBackdrop() {

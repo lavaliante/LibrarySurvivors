@@ -10,7 +10,7 @@ import {
 import { createLibraryLayout } from '../data/layout.js';
 import { clamp, distance, normalize, randomPointInCircle } from '../utils/geometry.js';
 
-const CHAOS_RELIEF_PER_SHELVED_BOOK = 4.5;
+const CHAOS_RELIEF_PER_SHELVED_BOOK = 6;
 const CHASE_LAUGH_DISTANCE = 260;
 const CHASE_LAUGH_COOLDOWN = 1.4;
 
@@ -1397,6 +1397,7 @@ export class GameScene extends Phaser.Scene {
   setStatus(_message) {
   }
 }
+
 
 
 

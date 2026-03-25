@@ -7,10 +7,10 @@ export const WORLD = {
 
 export const RUN = {
   durationSeconds: 600,
-  baseChaosPerSecond: 0.03,
-  floorBookChaosWeight: 0.15,
-  agedBookChaosWeight: 0.0018,
-  lowMessChaosRecovery: 0.14,
+  baseChaosPerSecond: 0.018,
+  floorBookChaosWeight: 0.1,
+  agedBookChaosWeight: 0.0012,
+  lowMessChaosRecovery: 0.2,
   levelXpBase: 100,
   levelXpIncrement: 10,
 
@@ -175,4 +175,5 @@ export const EVENT_DEFS = [
     }
   }
 ];
+
 
